@@ -235,10 +235,10 @@ my %globals = map { $_ => undef } qw(
     Podroot
     Poderrors
     Css
+    Recurse
 );
 my(@Podpath);
 
-my $Recurse;
 my $Quiet;
 my $Verbose;
 my $Doindex;
@@ -276,7 +276,7 @@ sub init_globals {
     $globals{Podroot} = $Curdir;         # filesystem base directory from which all
                                 #   relative paths in $podpath stem.
     $globals{Css} = '';                  # Cascading style sheet
-    $Recurse = 1;               # recurse on subdirectories in $podpath.
+    $globals{Recurse} = 1;               # recurse on subdirectories in $podpath.
     $Quiet = 0;                 # not quiet by default
     $Verbose = 0;               # not verbose by default
     $Doindex = 1;               # non-zero if we should generate an index
@@ -311,7 +311,7 @@ sub pod2html {
     }
 
     # load or generate/cache %Pages
-    unless (get_cache($globals{Dircache}, \@Podpath, $globals{Podroot}, $Recurse)) {
+    unless (get_cache($globals{Dircache}, \@Podpath, $globals{Podroot}, $globals{Recurse})) {
         # generate %Pages
         my $pwd = getcwd();
         chdir($globals{Podroot}) || 
@@ -321,7 +321,7 @@ sub pod2html {
         # - callback used to remove Podroot and extension from each file
         # - laborious to allow '.' in dirnames (e.g., /usr/share/perl/5.14.1)
         Pod::Simple::Search->new->inc(0)->verbose($Verbose)->laborious(1)
-            ->callback(\&_save_page)->recurse($Recurse)->survey(@Podpath);
+            ->callback(\&_save_page)->recurse($globals{Recurse})->survey(@Podpath);
 
         chdir($pwd) || die "$0: error changing to directory $pwd: $!\n";
 
@@ -534,7 +534,7 @@ sub parse_command_line {
     $globals{Poderrors} =          $opt_poderrors  if defined $opt_poderrors;
     $globals{Podroot}   = _unixify($opt_podroot)   if defined $opt_podroot;
     $Quiet     =          $opt_quiet      if defined $opt_quiet;
-    $Recurse   =          $opt_recurse    if defined $opt_recurse;
+    $globals{Recurse}   =          $opt_recurse    if defined $opt_recurse;
     $Title     =          $opt_title      if defined $opt_title;
     $Verbose   =          $opt_verbose    if defined $opt_verbose;
 
