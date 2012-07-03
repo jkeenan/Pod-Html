@@ -226,8 +226,9 @@ This program is distributed under the Artistic License.
 
 my %globals = (
     Cachedir => undef,
+    Dircache => undef,
 );
-my $Dircache;
+#my $Dircache;
 my($Htmlroot, $Htmldir, $Htmlfile, $Htmlfileurl);
 my($Podfile, @Podpath, $Podroot);
 my $Poderrors;
@@ -253,7 +254,7 @@ sub init_globals {
     $globals{Cachedir} = ".";            # The directory to which directory caches
                                 #   will be written.
 
-    $Dircache = "pod2htmd.tmp";
+    $globals{Dircache} = "pod2htmd.tmp";
 
     $Htmlroot = "/";            # http-server base directory from which all
                                 #   relative paths in $podpath stem.
@@ -306,7 +307,7 @@ sub pod2html {
     }
 
     # load or generate/cache %Pages
-    unless (get_cache($Dircache, \@Podpath, $Podroot, $Recurse)) {
+    unless (get_cache($globals{Dircache}, \@Podpath, $Podroot, $Recurse)) {
         # generate %Pages
         my $pwd = getcwd();
         chdir($Podroot) || 
@@ -322,8 +323,8 @@ sub pod2html {
 
         # cache the directory list for later use
         warn "caching directories for later use\n" if $Verbose;
-        open my $cache, '>', $Dircache
-            or die "$0: error open $Dircache for writing: $!\n";
+        open my $cache, '>', $globals{Dircache}
+            or die "$0: error open $globals{Dircache} for writing: $!\n";
 
         print $cache join(":", @Podpath) . "\n$Podroot\n";
         my $_updirs_only = ($Podroot =~ /\.\./) && !($Podroot =~ /[^\.\\\/]/);
@@ -339,7 +340,7 @@ sub pod2html {
             print $cache "$key $Pages{$key}\n";
         }
 
-        close $cache or die "error closing $Dircache: $!";
+        close $cache or die "error closing $globals{Dircache}: $!";
     }
 
     # set options for the parser
@@ -535,9 +536,9 @@ sub parse_command_line {
 
     warn "Flushing directory caches\n"
         if $opt_verbose && defined $opt_flush;
-    $Dircache = "$globals{Cachedir}/pod2htmd.tmp";
+    $globals{Dircache} = "$globals{Cachedir}/pod2htmd.tmp";
     if (defined $opt_flush) {
-        1 while unlink($Dircache);
+        1 while unlink($globals{Dircache});
     }
 }
 
