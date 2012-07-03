@@ -224,12 +224,12 @@ This program is distributed under the Artistic License.
 
 =cut
 
-my %globals = (
-    Cachedir => undef,
-    Dircache => undef,
+my %globals = map { $_ => undef } qw(
+    Cachedir
+    Dircache
+    Htmlroot
 );
-#my $Dircache;
-my($Htmlroot, $Htmldir, $Htmlfile, $Htmlfileurl);
+my($Htmldir, $Htmlfile, $Htmlfileurl);
 my($Podfile, @Podpath, $Podroot);
 my $Poderrors;
 my $Css;
@@ -256,7 +256,7 @@ sub init_globals {
 
     $globals{Dircache} = "pod2htmd.tmp";
 
-    $Htmlroot = "/";            # http-server base directory from which all
+    $globals{Htmlroot} = "/";            # http-server base directory from which all
                                 #   relative paths in $podpath stem.
     $Htmldir = "";              # The directory to which the html pages
                                 #   will (eventually) be written.
@@ -289,10 +289,10 @@ sub pod2html {
     parse_command_line();
 
     # prevent '//' in urls
-    $Htmlroot = "" if $Htmlroot eq "/";
+    $globals{Htmlroot} = "" if $globals{Htmlroot} eq "/";
     $Htmldir =~ s#/\z##;
 
-    if (  $Htmlroot eq ''
+    if (  $globals{Htmlroot} eq ''
        && $Htmldir ne ''
        && substr( $Htmlfile, 0, length( $Htmldir ) ) eq $Htmldir
        ) {
@@ -350,7 +350,7 @@ sub pod2html {
     $parser->backlink($Backlink); # linkify =head1 directives
     $parser->htmldir($Htmldir);
     $parser->htmlfileurl($Htmlfileurl);
-    $parser->htmlroot($Htmlroot);
+    $parser->htmlroot($globals{Htmlroot});
     $parser->index($Doindex);
     $parser->no_errata_section(!$Poderrors); # note the inverse
     $parser->output_string(\my $output); # written to file later
@@ -523,7 +523,7 @@ sub parse_command_line {
     $Css       =          $opt_css        if defined $opt_css;
     $Header    =          $opt_header     if defined $opt_header;
     $Htmldir   = _unixify($opt_htmldir)   if defined $opt_htmldir;
-    $Htmlroot  = _unixify($opt_htmlroot)  if defined $opt_htmlroot;
+    $globals{Htmlroot}  = _unixify($opt_htmlroot)  if defined $opt_htmlroot;
     $Doindex   =          $opt_index      if defined $opt_index;
     $Podfile   = _unixify($opt_infile)    if defined $opt_infile;
     $Htmlfile  = _unixify($opt_outfile)   if defined $opt_outfile;
