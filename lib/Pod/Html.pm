@@ -290,7 +290,6 @@ sub pod2html {
     $Htmldir =~ s#/\z##;
 
     if (  $Htmlroot eq ''
-       && defined( $Htmldir )
        && $Htmldir ne ''
        && substr( $Htmlfile, 0, length( $Htmldir ) ) eq $Htmldir
        ) {
