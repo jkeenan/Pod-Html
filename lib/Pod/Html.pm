@@ -224,7 +224,9 @@ This program is distributed under the Artistic License.
 
 =cut
 
-my $Cachedir; 
+my %globals = (
+    Cachedir => undef,
+);
 my $Dircache;
 my($Htmlroot, $Htmldir, $Htmlfile, $Htmlfileurl);
 my($Podfile, @Podpath, $Podroot);
@@ -248,7 +250,7 @@ my $Curdir = File::Spec->curdir;
 init_globals();
 
 sub init_globals {
-    $Cachedir = ".";            # The directory to which directory caches
+    $globals{Cachedir} = ".";            # The directory to which directory caches
                                 #   will be written.
 
     $Dircache = "pod2htmd.tmp";
@@ -516,7 +518,7 @@ sub parse_command_line {
     warn "--libpods is no longer supported" if defined $opt_libpods;
 
     $Backlink  =          $opt_backlink   if defined $opt_backlink;
-    $Cachedir  = _unixify($opt_cachedir)  if defined $opt_cachedir;
+    $globals{Cachedir}  = _unixify($opt_cachedir)  if defined $opt_cachedir;
     $Css       =          $opt_css        if defined $opt_css;
     $Header    =          $opt_header     if defined $opt_header;
     $Htmldir   = _unixify($opt_htmldir)   if defined $opt_htmldir;
@@ -533,7 +535,7 @@ sub parse_command_line {
 
     warn "Flushing directory caches\n"
         if $opt_verbose && defined $opt_flush;
-    $Dircache = "$Cachedir/pod2htmd.tmp";
+    $Dircache = "$globals{Cachedir}/pod2htmd.tmp";
     if (defined $opt_flush) {
         1 while unlink($Dircache);
     }
