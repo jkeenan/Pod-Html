@@ -229,8 +229,9 @@ my %globals = map { $_ => undef } qw(
     Dircache
     Htmlroot
     Htmldir
+    Htmlfile
 );
-my($Htmlfile, $Htmlfileurl);
+my($Htmlfileurl);
 my($Podfile, @Podpath, $Podroot);
 my $Poderrors;
 my $Css;
@@ -261,7 +262,7 @@ sub init_globals {
                                 #   relative paths in $podpath stem.
     $globals{Htmldir} = "";              # The directory to which the html pages
                                 #   will (eventually) be written.
-    $Htmlfile = "";             # write to stdout by default
+    $globals{Htmlfile} = "";             # write to stdout by default
     $Htmlfileurl = "";          # The url that other files would use to
                                 # refer to this file.  This is only used
                                 # to make relative urls that point to
@@ -295,15 +296,15 @@ sub pod2html {
 
     if (  $globals{Htmlroot} eq ''
        && $globals{Htmldir} ne ''
-       && substr( $Htmlfile, 0, length( $globals{Htmldir} ) ) eq $globals{Htmldir}
+       && substr( $globals{Htmlfile}, 0, length( $globals{Htmldir} ) ) eq $globals{Htmldir}
        ) {
         # Set the 'base' url for this file, so that we can use it
         # as the location from which to calculate relative links
         # to other files. If this is '', then absolute links will
         # be used throughout.
-        #$Htmlfileurl = "$globals{Htmldir}/" . substr( $Htmlfile, length( $globals{Htmldir} ) + 1);
-        # Is the above not just "$Htmlfileurl = $Htmlfile"?
-        $Htmlfileurl = Pod::Html::_unixify($Htmlfile);
+        #$Htmlfileurl = "$globals{Htmldir}/" . substr( $globals{Htmlfile}, length( $globals{Htmldir} ) + 1);
+        # Is the above not just "$Htmlfileurl = $globals{Htmlfile}"?
+        $Htmlfileurl = Pod::Html::_unixify($globals{Htmlfile});
 
     }
 
@@ -427,18 +428,18 @@ HTMLFOOT
     $parser->parse_file($input);
 
     # Write output to file
-    $Htmlfile = "-" unless $Htmlfile; # stdout
+    $globals{Htmlfile} = "-" unless $globals{Htmlfile}; # stdout
     my $fhout;
-    if($Htmlfile and $Htmlfile ne '-') {
-        open $fhout, ">", $Htmlfile
-            or die "$0: cannot open $Htmlfile file for output: $!\n";
+    if($globals{Htmlfile} and $globals{Htmlfile} ne '-') {
+        open $fhout, ">", $globals{Htmlfile}
+            or die "$0: cannot open $globals{Htmlfile} file for output: $!\n";
     } else {
         open $fhout, ">-";
     }
     binmode $fhout, ":utf8";
     print $fhout $output;
-    close $fhout or die "Failed to close $Htmlfile: $!";
-    chmod 0644, $Htmlfile unless $Htmlfile eq '-';
+    close $fhout or die "Failed to close $globals{Htmlfile}: $!";
+    chmod 0644, $globals{Htmlfile} unless $globals{Htmlfile} eq '-';
 }
 
 ##############################################################################
@@ -527,7 +528,7 @@ sub parse_command_line {
     $globals{Htmlroot}  = _unixify($opt_htmlroot)  if defined $opt_htmlroot;
     $Doindex   =          $opt_index      if defined $opt_index;
     $Podfile   = _unixify($opt_infile)    if defined $opt_infile;
-    $Htmlfile  = _unixify($opt_outfile)   if defined $opt_outfile;
+    $globals{Htmlfile}  = _unixify($opt_outfile)   if defined $opt_outfile;
     $Poderrors =          $opt_poderrors  if defined $opt_poderrors;
     $Podroot   = _unixify($opt_podroot)   if defined $opt_podroot;
     $Quiet     =          $opt_quiet      if defined $opt_quiet;
