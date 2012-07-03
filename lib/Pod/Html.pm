@@ -230,8 +230,8 @@ my %globals = map { $_ => undef } qw(
     Htmlroot
     Htmldir
     Htmlfile
+    Htmlfileurl
 );
-my($Htmlfileurl);
 my($Podfile, @Podpath, $Podroot);
 my $Poderrors;
 my $Css;
@@ -263,7 +263,7 @@ sub init_globals {
     $globals{Htmldir} = "";              # The directory to which the html pages
                                 #   will (eventually) be written.
     $globals{Htmlfile} = "";             # write to stdout by default
-    $Htmlfileurl = "";          # The url that other files would use to
+    $globals{Htmlfileurl} = "";          # The url that other files would use to
                                 # refer to this file.  This is only used
                                 # to make relative urls that point to
                                 # other files.
@@ -302,9 +302,9 @@ sub pod2html {
         # as the location from which to calculate relative links
         # to other files. If this is '', then absolute links will
         # be used throughout.
-        #$Htmlfileurl = "$globals{Htmldir}/" . substr( $globals{Htmlfile}, length( $globals{Htmldir} ) + 1);
-        # Is the above not just "$Htmlfileurl = $globals{Htmlfile}"?
-        $Htmlfileurl = Pod::Html::_unixify($globals{Htmlfile});
+        #$globals{Htmlfileurl} = "$globals{Htmldir}/" . substr( $globals{Htmlfile}, length( $globals{Htmldir} ) + 1);
+        # Is the above not just "$globals{Htmlfileurl} = $globals{Htmlfile}"?
+        $globals{Htmlfileurl} = Pod::Html::_unixify($globals{Htmlfile});
 
     }
 
@@ -351,7 +351,7 @@ sub pod2html {
     $parser->anchor_items(1); # the old Pod::Html always did
     $parser->backlink($Backlink); # linkify =head1 directives
     $parser->htmldir($globals{Htmldir});
-    $parser->htmlfileurl($Htmlfileurl);
+    $parser->htmlfileurl($globals{Htmlfileurl});
     $parser->htmlroot($globals{Htmlroot});
     $parser->index($Doindex);
     $parser->no_errata_section(!$Poderrors); # note the inverse
