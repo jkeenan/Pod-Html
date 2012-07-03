@@ -231,8 +231,9 @@ my %globals = map { $_ => undef } qw(
     Htmldir
     Htmlfile
     Htmlfileurl
+    Podfile
 );
-my($Podfile, @Podpath, $Podroot);
+my(@Podpath, $Podroot);
 my $Poderrors;
 my $Css;
 
@@ -269,7 +270,7 @@ sub init_globals {
                                 # other files.
 
     $Poderrors = 1;
-    $Podfile = "";              # read from stdin by default
+    $globals{Podfile} = "";              # read from stdin by default
     @Podpath = ();              # list of directories containing library pods.
     $Podroot = $Curdir;         # filesystem base directory from which all
                                 #   relative paths in $podpath stem.
@@ -414,17 +415,17 @@ HTMLFOOT
 
     my $input;
     unless (@ARGV && $ARGV[0]) {
-        if ($Podfile and $Podfile ne '-') {
-            $input = $Podfile;
+        if ($globals{Podfile} and $globals{Podfile} ne '-') {
+            $input = $globals{Podfile};
         } else {
             $input = '-'; # XXX: make a test case for this
         }
     } else {
-        $Podfile = $ARGV[0];
+        $globals{Podfile} = $ARGV[0];
         $input = *ARGV;
     }
 
-    warn "Converting input file $Podfile\n" if $Verbose;
+    warn "Converting input file $globals{Podfile}\n" if $Verbose;
     $parser->parse_file($input);
 
     # Write output to file
@@ -527,7 +528,7 @@ sub parse_command_line {
     $globals{Htmldir}   = _unixify($opt_htmldir)   if defined $opt_htmldir;
     $globals{Htmlroot}  = _unixify($opt_htmlroot)  if defined $opt_htmlroot;
     $Doindex   =          $opt_index      if defined $opt_index;
-    $Podfile   = _unixify($opt_infile)    if defined $opt_infile;
+    $globals{Podfile}   = _unixify($opt_infile)    if defined $opt_infile;
     $globals{Htmlfile}  = _unixify($opt_outfile)   if defined $opt_outfile;
     $Poderrors =          $opt_poderrors  if defined $opt_poderrors;
     $Podroot   = _unixify($opt_podroot)   if defined $opt_podroot;
