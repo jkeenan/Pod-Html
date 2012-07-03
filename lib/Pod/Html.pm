@@ -224,25 +224,7 @@ This program is distributed under the Artistic License.
 
 =cut
 
-my %globals = map { $_ => undef } qw(
-    Cachedir
-    Dircache
-    Htmlroot
-    Htmldir
-    Htmlfile
-    Htmlfileurl
-    Podfile
-    Podroot
-    Poderrors
-    Css
-    Recurse
-    Quiet
-    Verbose
-    Doindex
-    Backlink
-    Title
-    Header
-);
+my %globals = ();
 $globals{Podpath} = [];
 # associative array used to find the location
 # of pages referenced by L<> links.
