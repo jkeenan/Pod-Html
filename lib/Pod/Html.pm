@@ -239,10 +239,9 @@ my %globals = map { $_ => undef } qw(
     Quiet
     Verbose
     Doindex
+    Backlink
 );
 my(@Podpath);
-
-my $Backlink;
 
 my($Title, $Header);
 
@@ -279,7 +278,7 @@ sub init_globals {
     $globals{Quiet} = 0;                 # not quiet by default
     $globals{Verbose} = 0;               # not verbose by default
     $globals{Doindex} = 1;               # non-zero if we should generate an index
-    $Backlink = 0;              # no backlinks added by default
+    $globals{Backlink} = 0;              # no backlinks added by default
     $Header = 0;                # produce block header/footer
     $Title = '';                # title to give the pod(s)
 }
@@ -350,7 +349,7 @@ sub pod2html {
     my $parser = Pod::Simple::XHTML::LocalPodLinks->new();
     $parser->codes_in_verbatim(0);
     $parser->anchor_items(1); # the old Pod::Html always did
-    $parser->backlink($Backlink); # linkify =head1 directives
+    $parser->backlink($globals{Backlink}); # linkify =head1 directives
     $parser->htmldir($globals{Htmldir});
     $parser->htmlfileurl($globals{Htmlfileurl});
     $parser->htmlroot($globals{Htmlroot});
@@ -368,7 +367,7 @@ sub pod2html {
     # We need to add this ourselves because we use our own header, not
     # ::XHTML's header. We need to set $parser->backlink to linkify
     # the =head1 directives
-    my $bodyid = $Backlink ? ' id="_podtop_"' : '';
+    my $bodyid = $globals{Backlink} ? ' id="_podtop_"' : '';
 
     my $csslink = '';
     my $bodystyle = ' style="background-color: white"';
@@ -521,7 +520,7 @@ sub parse_command_line {
     @Podpath  = split(":", $opt_podpath) if defined $opt_podpath;
     warn "--libpods is no longer supported" if defined $opt_libpods;
 
-    $Backlink  =          $opt_backlink   if defined $opt_backlink;
+    $globals{Backlink}  =          $opt_backlink   if defined $opt_backlink;
     $globals{Cachedir}  = _unixify($opt_cachedir)  if defined $opt_cachedir;
     $globals{Css}       =          $opt_css        if defined $opt_css;
     $Header    =          $opt_header     if defined $opt_header;
