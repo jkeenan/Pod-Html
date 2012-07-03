@@ -228,8 +228,9 @@ my %globals = map { $_ => undef } qw(
     Cachedir
     Dircache
     Htmlroot
+    Htmldir
 );
-my($Htmldir, $Htmlfile, $Htmlfileurl);
+my($Htmlfile, $Htmlfileurl);
 my($Podfile, @Podpath, $Podroot);
 my $Poderrors;
 my $Css;
@@ -258,7 +259,7 @@ sub init_globals {
 
     $globals{Htmlroot} = "/";            # http-server base directory from which all
                                 #   relative paths in $podpath stem.
-    $Htmldir = "";              # The directory to which the html pages
+    $globals{Htmldir} = "";              # The directory to which the html pages
                                 #   will (eventually) be written.
     $Htmlfile = "";             # write to stdout by default
     $Htmlfileurl = "";          # The url that other files would use to
@@ -290,17 +291,17 @@ sub pod2html {
 
     # prevent '//' in urls
     $globals{Htmlroot} = "" if $globals{Htmlroot} eq "/";
-    $Htmldir =~ s#/\z##;
+    $globals{Htmldir} =~ s#/\z##;
 
     if (  $globals{Htmlroot} eq ''
-       && $Htmldir ne ''
-       && substr( $Htmlfile, 0, length( $Htmldir ) ) eq $Htmldir
+       && $globals{Htmldir} ne ''
+       && substr( $Htmlfile, 0, length( $globals{Htmldir} ) ) eq $globals{Htmldir}
        ) {
         # Set the 'base' url for this file, so that we can use it
         # as the location from which to calculate relative links
         # to other files. If this is '', then absolute links will
         # be used throughout.
-        #$Htmlfileurl = "$Htmldir/" . substr( $Htmlfile, length( $Htmldir ) + 1);
+        #$Htmlfileurl = "$globals{Htmldir}/" . substr( $Htmlfile, length( $globals{Htmldir} ) + 1);
         # Is the above not just "$Htmlfileurl = $Htmlfile"?
         $Htmlfileurl = Pod::Html::_unixify($Htmlfile);
 
@@ -348,7 +349,7 @@ sub pod2html {
     $parser->codes_in_verbatim(0);
     $parser->anchor_items(1); # the old Pod::Html always did
     $parser->backlink($Backlink); # linkify =head1 directives
-    $parser->htmldir($Htmldir);
+    $parser->htmldir($globals{Htmldir});
     $parser->htmlfileurl($Htmlfileurl);
     $parser->htmlroot($globals{Htmlroot});
     $parser->index($Doindex);
@@ -522,7 +523,7 @@ sub parse_command_line {
     $globals{Cachedir}  = _unixify($opt_cachedir)  if defined $opt_cachedir;
     $Css       =          $opt_css        if defined $opt_css;
     $Header    =          $opt_header     if defined $opt_header;
-    $Htmldir   = _unixify($opt_htmldir)   if defined $opt_htmldir;
+    $globals{Htmldir}   = _unixify($opt_htmldir)   if defined $opt_htmldir;
     $globals{Htmlroot}  = _unixify($opt_htmlroot)  if defined $opt_htmlroot;
     $Doindex   =          $opt_index      if defined $opt_index;
     $Podfile   = _unixify($opt_infile)    if defined $opt_infile;
