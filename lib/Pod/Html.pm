@@ -238,10 +238,9 @@ my %globals = map { $_ => undef } qw(
     Recurse
     Quiet
     Verbose
+    Doindex
 );
 my(@Podpath);
-
-my $Doindex;
 
 my $Backlink;
 
@@ -279,7 +278,7 @@ sub init_globals {
     $globals{Recurse} = 1;               # recurse on subdirectories in $podpath.
     $globals{Quiet} = 0;                 # not quiet by default
     $globals{Verbose} = 0;               # not verbose by default
-    $Doindex = 1;               # non-zero if we should generate an index
+    $globals{Doindex} = 1;               # non-zero if we should generate an index
     $Backlink = 0;              # no backlinks added by default
     $Header = 0;                # produce block header/footer
     $Title = '';                # title to give the pod(s)
@@ -355,7 +354,7 @@ sub pod2html {
     $parser->htmldir($globals{Htmldir});
     $parser->htmlfileurl($globals{Htmlfileurl});
     $parser->htmlroot($globals{Htmlroot});
-    $parser->index($Doindex);
+    $parser->index($globals{Doindex});
     $parser->no_errata_section(!$globals{Poderrors}); # note the inverse
     $parser->output_string(\my $output); # written to file later
     $parser->pages(\%Pages);
@@ -528,7 +527,7 @@ sub parse_command_line {
     $Header    =          $opt_header     if defined $opt_header;
     $globals{Htmldir}   = _unixify($opt_htmldir)   if defined $opt_htmldir;
     $globals{Htmlroot}  = _unixify($opt_htmlroot)  if defined $opt_htmlroot;
-    $Doindex   =          $opt_index      if defined $opt_index;
+    $globals{Doindex}   =          $opt_index      if defined $opt_index;
     $globals{Podfile}   = _unixify($opt_infile)    if defined $opt_infile;
     $globals{Htmlfile}  = _unixify($opt_outfile)   if defined $opt_outfile;
     $globals{Poderrors} =          $opt_poderrors  if defined $opt_poderrors;
