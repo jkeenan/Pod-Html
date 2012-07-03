@@ -236,10 +236,10 @@ my %globals = map { $_ => undef } qw(
     Poderrors
     Css
     Recurse
+    Quiet
 );
 my(@Podpath);
 
-my $Quiet;
 my $Verbose;
 my $Doindex;
 
@@ -277,7 +277,7 @@ sub init_globals {
                                 #   relative paths in $podpath stem.
     $globals{Css} = '';                  # Cascading style sheet
     $globals{Recurse} = 1;               # recurse on subdirectories in $podpath.
-    $Quiet = 0;                 # not quiet by default
+    $globals{Quiet} = 0;                 # not quiet by default
     $Verbose = 0;               # not verbose by default
     $Doindex = 1;               # non-zero if we should generate an index
     $Backlink = 0;              # no backlinks added by default
@@ -359,7 +359,7 @@ sub pod2html {
     $parser->no_errata_section(!$globals{Poderrors}); # note the inverse
     $parser->output_string(\my $output); # written to file later
     $parser->pages(\%Pages);
-    $parser->quiet($Quiet);
+    $parser->quiet($globals{Quiet});
     $parser->verbose($Verbose);
 
     # XXX: implement default title generator in pod::simple::xhtml
@@ -533,7 +533,7 @@ sub parse_command_line {
     $globals{Htmlfile}  = _unixify($opt_outfile)   if defined $opt_outfile;
     $globals{Poderrors} =          $opt_poderrors  if defined $opt_poderrors;
     $globals{Podroot}   = _unixify($opt_podroot)   if defined $opt_podroot;
-    $Quiet     =          $opt_quiet      if defined $opt_quiet;
+    $globals{Quiet}     =          $opt_quiet      if defined $opt_quiet;
     $globals{Recurse}   =          $opt_recurse    if defined $opt_recurse;
     $Title     =          $opt_title      if defined $opt_title;
     $Verbose   =          $opt_verbose    if defined $opt_verbose;
