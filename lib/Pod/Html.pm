@@ -234,9 +234,9 @@ my %globals = map { $_ => undef } qw(
     Podfile
     Podroot
     Poderrors
+    Css
 );
 my(@Podpath);
-my $Css;
 
 my $Recurse;
 my $Quiet;
@@ -275,7 +275,7 @@ sub init_globals {
     @Podpath = ();              # list of directories containing library pods.
     $globals{Podroot} = $Curdir;         # filesystem base directory from which all
                                 #   relative paths in $podpath stem.
-    $Css = '';                  # Cascading style sheet
+    $globals{Css} = '';                  # Cascading style sheet
     $Recurse = 1;               # recurse on subdirectories in $podpath.
     $Quiet = 0;                 # not quiet by default
     $Verbose = 0;               # not verbose by default
@@ -375,8 +375,8 @@ sub pod2html {
     my $bodystyle = ' style="background-color: white"';
     my $tdstyle = ' style="background-color: #cccccc"';
 
-    if ($Css) {
-        $csslink = qq(\n<link rel="stylesheet" href="$Css" type="text/css" />);
+    if ($globals{Css}) {
+        $csslink = qq(\n<link rel="stylesheet" href="$globals{Css}" type="text/css" />);
         $csslink =~ s,\\,/,g;
         $csslink =~ s,(/.):,$1|,;
         $bodystyle = '';
@@ -524,7 +524,7 @@ sub parse_command_line {
 
     $Backlink  =          $opt_backlink   if defined $opt_backlink;
     $globals{Cachedir}  = _unixify($opt_cachedir)  if defined $opt_cachedir;
-    $Css       =          $opt_css        if defined $opt_css;
+    $globals{Css}       =          $opt_css        if defined $opt_css;
     $Header    =          $opt_header     if defined $opt_header;
     $globals{Htmldir}   = _unixify($opt_htmldir)   if defined $opt_htmldir;
     $globals{Htmlroot}  = _unixify($opt_htmlroot)  if defined $opt_htmlroot;
