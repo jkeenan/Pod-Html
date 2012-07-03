@@ -233,9 +233,9 @@ my %globals = map { $_ => undef } qw(
     Htmlfileurl
     Podfile
     Podroot
+    Poderrors
 );
 my(@Podpath);
-my $Poderrors;
 my $Css;
 
 my $Recurse;
@@ -270,7 +270,7 @@ sub init_globals {
                                 # to make relative urls that point to
                                 # other files.
 
-    $Poderrors = 1;
+    $globals{Poderrors} = 1;
     $globals{Podfile} = "";              # read from stdin by default
     @Podpath = ();              # list of directories containing library pods.
     $globals{Podroot} = $Curdir;         # filesystem base directory from which all
@@ -356,7 +356,7 @@ sub pod2html {
     $parser->htmlfileurl($globals{Htmlfileurl});
     $parser->htmlroot($globals{Htmlroot});
     $parser->index($Doindex);
-    $parser->no_errata_section(!$Poderrors); # note the inverse
+    $parser->no_errata_section(!$globals{Poderrors}); # note the inverse
     $parser->output_string(\my $output); # written to file later
     $parser->pages(\%Pages);
     $parser->quiet($Quiet);
@@ -531,7 +531,7 @@ sub parse_command_line {
     $Doindex   =          $opt_index      if defined $opt_index;
     $globals{Podfile}   = _unixify($opt_infile)    if defined $opt_infile;
     $globals{Htmlfile}  = _unixify($opt_outfile)   if defined $opt_outfile;
-    $Poderrors =          $opt_poderrors  if defined $opt_poderrors;
+    $globals{Poderrors} =          $opt_poderrors  if defined $opt_poderrors;
     $globals{Podroot}   = _unixify($opt_podroot)   if defined $opt_podroot;
     $Quiet     =          $opt_quiet      if defined $opt_quiet;
     $Recurse   =          $opt_recurse    if defined $opt_recurse;
