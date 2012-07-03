@@ -232,8 +232,9 @@ my %globals = map { $_ => undef } qw(
     Htmlfile
     Htmlfileurl
     Podfile
+    Podroot
 );
-my(@Podpath, $Podroot);
+my(@Podpath);
 my $Poderrors;
 my $Css;
 
@@ -272,7 +273,7 @@ sub init_globals {
     $Poderrors = 1;
     $globals{Podfile} = "";              # read from stdin by default
     @Podpath = ();              # list of directories containing library pods.
-    $Podroot = $Curdir;         # filesystem base directory from which all
+    $globals{Podroot} = $Curdir;         # filesystem base directory from which all
                                 #   relative paths in $podpath stem.
     $Css = '';                  # Cascading style sheet
     $Recurse = 1;               # recurse on subdirectories in $podpath.
@@ -310,11 +311,11 @@ sub pod2html {
     }
 
     # load or generate/cache %Pages
-    unless (get_cache($globals{Dircache}, \@Podpath, $Podroot, $Recurse)) {
+    unless (get_cache($globals{Dircache}, \@Podpath, $globals{Podroot}, $Recurse)) {
         # generate %Pages
         my $pwd = getcwd();
-        chdir($Podroot) || 
-            die "$0: error changing to directory $Podroot: $!\n";
+        chdir($globals{Podroot}) || 
+            die "$0: error changing to directory $globals{Podroot}: $!\n";
 
         # find all pod modules/pages in podpath, store in %Pages
         # - callback used to remove Podroot and extension from each file
@@ -329,11 +330,11 @@ sub pod2html {
         open my $cache, '>', $globals{Dircache}
             or die "$0: error open $globals{Dircache} for writing: $!\n";
 
-        print $cache join(":", @Podpath) . "\n$Podroot\n";
-        my $_updirs_only = ($Podroot =~ /\.\./) && !($Podroot =~ /[^\.\\\/]/);
+        print $cache join(":", @Podpath) . "\n$globals{Podroot}\n";
+        my $_updirs_only = ($globals{Podroot} =~ /\.\./) && !($globals{Podroot} =~ /[^\.\\\/]/);
         foreach my $key (keys %Pages) {
             if($_updirs_only) {
-              my $_dirlevel = $Podroot;
+              my $_dirlevel = $globals{Podroot};
               while($_dirlevel =~ /\.\./) {
                 $_dirlevel =~ s/\.\.//;
                 # Assume $Pages{$key} has '/' separators (html dir separators).
@@ -531,7 +532,7 @@ sub parse_command_line {
     $globals{Podfile}   = _unixify($opt_infile)    if defined $opt_infile;
     $globals{Htmlfile}  = _unixify($opt_outfile)   if defined $opt_outfile;
     $Poderrors =          $opt_poderrors  if defined $opt_poderrors;
-    $Podroot   = _unixify($opt_podroot)   if defined $opt_podroot;
+    $globals{Podroot}   = _unixify($opt_podroot)   if defined $opt_podroot;
     $Quiet     =          $opt_quiet      if defined $opt_quiet;
     $Recurse   =          $opt_recurse    if defined $opt_recurse;
     $Title     =          $opt_title      if defined $opt_title;
@@ -664,10 +665,10 @@ sub _save_page {
     my ($modspec, $modname) = @_;
 
     # Remove Podroot from path
-    $modspec = $Podroot eq File::Spec->curdir
+    $modspec = $globals{Podroot} eq File::Spec->curdir
                ? File::Spec->abs2rel($modspec)
                : File::Spec->abs2rel($modspec,
-                                     File::Spec->canonpath($Podroot));
+                                     File::Spec->canonpath($globals{Podroot}));
 
     # Convert path to unix style path
     $modspec = Pod::Html::_unixify($modspec);
