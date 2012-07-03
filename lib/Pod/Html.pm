@@ -237,10 +237,10 @@ my %globals = map { $_ => undef } qw(
     Css
     Recurse
     Quiet
+    Verbose
 );
 my(@Podpath);
 
-my $Verbose;
 my $Doindex;
 
 my $Backlink;
@@ -278,7 +278,7 @@ sub init_globals {
     $globals{Css} = '';                  # Cascading style sheet
     $globals{Recurse} = 1;               # recurse on subdirectories in $podpath.
     $globals{Quiet} = 0;                 # not quiet by default
-    $Verbose = 0;               # not verbose by default
+    $globals{Verbose} = 0;               # not verbose by default
     $Doindex = 1;               # non-zero if we should generate an index
     $Backlink = 0;              # no backlinks added by default
     $Header = 0;                # produce block header/footer
@@ -320,13 +320,13 @@ sub pod2html {
         # find all pod modules/pages in podpath, store in %Pages
         # - callback used to remove Podroot and extension from each file
         # - laborious to allow '.' in dirnames (e.g., /usr/share/perl/5.14.1)
-        Pod::Simple::Search->new->inc(0)->verbose($Verbose)->laborious(1)
+        Pod::Simple::Search->new->inc(0)->verbose($globals{Verbose})->laborious(1)
             ->callback(\&_save_page)->recurse($globals{Recurse})->survey(@Podpath);
 
         chdir($pwd) || die "$0: error changing to directory $pwd: $!\n";
 
         # cache the directory list for later use
-        warn "caching directories for later use\n" if $Verbose;
+        warn "caching directories for later use\n" if $globals{Verbose};
         open my $cache, '>', $globals{Dircache}
             or die "$0: error open $globals{Dircache} for writing: $!\n";
 
@@ -360,7 +360,7 @@ sub pod2html {
     $parser->output_string(\my $output); # written to file later
     $parser->pages(\%Pages);
     $parser->quiet($globals{Quiet});
-    $parser->verbose($Verbose);
+    $parser->verbose($globals{Verbose});
 
     # XXX: implement default title generator in pod::simple::xhtml
     # copy the way the old Pod::Html did it
@@ -426,7 +426,7 @@ HTMLFOOT
         $input = *ARGV;
     }
 
-    warn "Converting input file $globals{Podfile}\n" if $Verbose;
+    warn "Converting input file $globals{Podfile}\n" if $globals{Verbose};
     $parser->parse_file($input);
 
     # Write output to file
@@ -536,7 +536,7 @@ sub parse_command_line {
     $globals{Quiet}     =          $opt_quiet      if defined $opt_quiet;
     $globals{Recurse}   =          $opt_recurse    if defined $opt_recurse;
     $Title     =          $opt_title      if defined $opt_title;
-    $Verbose   =          $opt_verbose    if defined $opt_verbose;
+    $globals{Verbose}   =          $opt_verbose    if defined $opt_verbose;
 
     warn "Flushing directory caches\n"
         if $opt_verbose && defined $opt_flush;
@@ -564,7 +564,7 @@ sub get_cache {
     # non-zero if successful.
     my $tests = 0;
     if (-f $dircache) {
-        warn "scanning for directory cache\n" if $Verbose;
+        warn "scanning for directory cache\n" if $globals{Verbose};
         $tests = load_cache($dircache, $podpath, $podroot);
     }
 
@@ -585,7 +585,7 @@ sub load_cache {
     my $tests = 0;
     local $_;
 
-    warn "scanning for directory cache\n" if $Verbose;
+    warn "scanning for directory cache\n" if $globals{Verbose};
     open(my $cachefh, '<', $dircache) ||
         die "$0: error opening $dircache for reading: $!\n";
     $/ = "\n";
@@ -606,7 +606,7 @@ sub load_cache {
         return 0;
     }
 
-    warn "loading directory cache\n" if $Verbose;
+    warn "loading directory cache\n" if $globals{Verbose};
     while (<$cachefh>) {
         /(.*?) (.*)$/;
         $Pages{$1} = $2;
