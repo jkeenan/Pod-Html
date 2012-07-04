@@ -257,6 +257,7 @@ sub init_globals {
     $globals{Backlink} = 0;              # no backlinks added by default
     $globals{Header} = 0;                # produce block header/footer
     $globals{Title} = '';                # title to give the pod(s)
+    $globals{Saved_Cache_Key} = undef;
 }
 
 sub pod2html {
@@ -523,7 +524,7 @@ sub parse_command_line {
     return %globals;
 }
 
-my $Saved_Cache_Key;
+#my $Saved_Cache_Key;
 
 sub get_cache {
     my($dircache, $podpath, $podroot, $recurse) = @_;
@@ -533,8 +534,8 @@ sub get_cache {
     # and haven't changed since we last read them.
 
     my $this_cache_key = cache_key($dircache, $podpath, $podroot, $recurse);
-    return 1 if $Saved_Cache_Key and $this_cache_key eq $Saved_Cache_Key;
-    $Saved_Cache_Key = $this_cache_key;
+    return 1 if $globals{Saved_Cache_Key} and $this_cache_key eq $globals{Saved_Cache_Key};
+    $globals{Saved_Cache_Key} = $this_cache_key;
 
     # load the cache of %Pages if possible.  $tests will be
     # non-zero if successful.
