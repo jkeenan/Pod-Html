@@ -227,7 +227,8 @@ This program is distributed under the Artistic License.
 my %globals = ();
 # associative array used to find the location
 # of pages referenced by L<> links.
-$globals{Pages} = {};
+#$globals{Pages} = {};
+my %Pages = ();
 $globals{Curdir} = File::Spec->curdir;
 
 init_globals();
@@ -280,20 +281,20 @@ sub pod2html {
         # as the location from which to calculate relative links
         # to other files. If this is '', then absolute links will
         # be used throughout.
-        #$globals{Htmlfileurl} = "$globals{Htmldir}/" . substr( $globals{Htmlfile}, length( $globals{Htmldir} ) + 1);
+        # $globals{Htmlfileurl} =
+        #   "$globals{Htmldir}/" . substr( $globals{Htmlfile}, length( $globals{Htmldir} ) + 1);
         # Is the above not just "$globals{Htmlfileurl} = $globals{Htmlfile}"?
         $globals{Htmlfileurl} = Pod::Html::_unixify($globals{Htmlfile});
-
     }
 
-    # load or generate/cache %{$globals{Pages}}
+    # load or generate/cache %Pages
     unless (get_cache($globals{Dircache}, $globals{Podpath}, $globals{Podroot}, $globals{Recurse})) {
-        # generate %{$globals{Pages}}
+        # generate %Pages
         my $pwd = getcwd();
         chdir($globals{Podroot}) || 
             die "$0: error changing to directory $globals{Podroot}: $!\n";
 
-        # find all pod modules/pages in podpath, store in %{$globals{Pages}}
+        # find all pod modules/pages in podpath, store in %Pages
         # - callback used to remove Podroot and extension from each file
         # - laborious to allow '.' in dirnames (e.g., /usr/share/perl/5.14.1)
         Pod::Simple::Search->new->inc(0)->verbose($globals{Verbose})->laborious(1)
@@ -308,16 +309,16 @@ sub pod2html {
 
         print $cache join(":", @{$globals{Podpath}}) . "\n$globals{Podroot}\n";
         my $_updirs_only = ($globals{Podroot} =~ /\.\./) && !($globals{Podroot} =~ /[^\.\\\/]/);
-        foreach my $key (keys %{$globals{Pages}}) {
+        foreach my $key (keys %Pages) {
             if($_updirs_only) {
               my $_dirlevel = $globals{Podroot};
               while($_dirlevel =~ /\.\./) {
                 $_dirlevel =~ s/\.\.//;
-                # Assume $globals{Pages}{$key} has '/' separators (html dir separators).
-                $globals{Pages}{$key} =~ s/^[\w\s\-\.]+\///;
+                # Assume $Pages{$key} has '/' separators (html dir separators).
+                $Pages{$key} =~ s/^[\w\s\-\.]+\///;
               }
             }
-            print $cache "$key $globals{Pages}{$key}\n";
+            print $cache "$key $Pages{$key}\n";
         }
 
         close $cache or die "error closing $globals{Dircache}: $!";
@@ -334,7 +335,8 @@ sub pod2html {
     $parser->index($globals{Doindex});
     $parser->no_errata_section(!$globals{Poderrors}); # note the inverse
     $parser->output_string(\my $output); # written to file later
-    $parser->pages($globals{Pages});
+#    $parser->pages($Pages);
+    $parser->pages(\%Pages);
     $parser->quiet($globals{Quiet});
     $parser->verbose($globals{Verbose});
 
@@ -538,7 +540,7 @@ sub get_cache {
     return 1 if $Saved_Cache_Key and $this_cache_key eq $Saved_Cache_Key;
     $Saved_Cache_Key = $this_cache_key;
 
-    # load the cache of %{$globals{Pages}} if possible.  $tests will be
+    # load the cache of %Pages if possible.  $tests will be
     # non-zero if successful.
     my $tests = 0;
     if (-f $dircache) {
@@ -556,7 +558,7 @@ sub cache_key {
 
 #
 # load_cache - tries to find if the cache stored in $dircache is a valid
-#  cache of %{$globals{Pages}}.  if so, it loads them and returns a non-zero value.
+#  cache of %Pages.  if so, it loads them and returns a non-zero value.
 #
 sub load_cache {
     my($dircache, $podpath, $podroot) = @_;
@@ -587,7 +589,7 @@ sub load_cache {
     warn "loading directory cache\n" if $globals{Verbose};
     while (<$cachefh>) {
         /(.*?) (.*)$/;
-        $globals{Pages}{$1} = $2;
+        $Pages{$1} = $2;
     }
 
     close($cachefh);
@@ -637,7 +639,7 @@ sub anchorify {
 }
 
 #
-# store POD files in %{$globals{Pages}}
+# store POD files in %Pages
 #
 sub _save_page {
     my ($modspec, $modname) = @_;
@@ -652,7 +654,7 @@ sub _save_page {
     $modspec = Pod::Html::_unixify($modspec);
 
     my ($file, $dir) = fileparse($modspec, qr/\.[^.]*/); # strip .ext
-    $globals{Pages}{$modname} = $dir.$file;
+    $Pages{$modname} = $dir.$file;
 }
 
 sub _unixify {
@@ -711,11 +713,11 @@ sub resolve_pod_page_link {
         $section = '';
     }
 
-    my $path; # path to $to according to %{$globals{Pages}}
+    my $path; # path to $to according to %Pages
     unless (exists $self->pages->{$to}) {
         # Try to find a POD that ends with $to and use that.
-        # e.g., given L<XHTML>, if there is no $Podpath/XHTML in %{$globals{Pages}},
-        # look for $Podpath/*/XHTML in %{$globals{Pages}}, with * being any path,
+        # e.g., given L<XHTML>, if there is no $Podpath/XHTML in %Pages,
+        # look for $Podpath/*/XHTML in %Pages, with * being any path,
         # as a substitute (e.g., $Podpath/Pod/Simple/XHTML)
         my @matches;
         foreach my $modname (keys %{$self->pages}) {
