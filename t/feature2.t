@@ -7,7 +7,7 @@ BEGIN {
 
 use strict;
 use Cwd;
-use Test::More tests => 2;
+use Test::More tests => 3;
 
 my $cwd = cwd();
 
@@ -24,12 +24,16 @@ convert_n_test("feature2", "misc pod-html features 2",
  "--quiet",
  );
 
-like($warn,
-    qr(
-	\Acaching\ directories\ for\ later\ use\n
-	Converting\ input\ file\ \S+[/\\\]]feature2\.pod\n\z	
-    )x,
-    "misc pod-html --verbose warnings");
+like(
+    $warn,
+    qr/caching directories for later use/s,
+    "misc pod-html --verbose warnings: caching directories",
+);
+like(
+    $warn,
+    qr/Converting input file/,
+    "misc pod-html --verbose warnings: Converting input file",
+);
 
 __DATA__
 <?xml version="1.0" ?>

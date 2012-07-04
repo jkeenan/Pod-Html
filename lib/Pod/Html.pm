@@ -273,7 +273,8 @@ sub pod2html {
     %globals = _globals_cleanup(%globals);
 
     # load or generate/cache %Pages
-    unless (get_cache($globals{Dircache}, $globals{Podpath}, $globals{Podroot}, $globals{Recurse})) {
+    unless (get_cache($globals{Dircache}, $globals{Podpath},
+            $globals{Podroot}, $globals{Recurse}, $globals{Verbose})) {
         # generate %Pages
         my $pwd = getcwd();
         chdir($globals{Podroot}) || 
@@ -388,7 +389,10 @@ HTMLFOOT
         $input = *ARGV;
     }
 
-    warn "Converting input file $globals{Podfile}\n" if $globals{Verbose};
+    if ($globals{Verbose}) {
+        my $subr = (caller(0))[3];
+        warn "$subr: Converting input file $globals{Podfile}\n";
+    }
     $parser->parse_file($input);
 
     # Write output to file
@@ -409,7 +413,7 @@ HTMLFOOT
 ##############################################################################
 
 sub get_cache {
-    my($dircache, $podpath, $podroot, $recurse) = @_;
+    my($dircache, $podpath, $podroot, $recurse, $verbose) = @_;
 
     # A first-level cache:
     # Don't bother reading the cache files if they still apply
@@ -423,8 +427,11 @@ sub get_cache {
     # non-zero if successful.
     my $tests = 0;
     if (-f $dircache) {
-        warn "scanning for directory cache\n" if $globals{Verbose};
-        $tests = load_cache($dircache, $podpath, $podroot);
+        if ($verbose) {
+            my $subr = (caller(0))[3];
+            warn "$subr: scanning for directory cache\n";
+        }
+        $tests = load_cache($dircache, $podpath, $podroot, $verbose);
     }
 
     return $tests;
@@ -440,11 +447,14 @@ sub cache_key {
 #  cache of %Pages.  if so, it loads them and returns a non-zero value.
 #
 sub load_cache {
-    my($dircache, $podpath, $podroot) = @_;
+    my($dircache, $podpath, $podroot, $verbose) = @_;
     my $tests = 0;
     local $_;
 
-    warn "scanning for directory cache\n" if $globals{Verbose};
+    if ($verbose) {
+        my $subr = (caller(0))[3];
+        warn "$subr: scanning for directory cache\n";
+    }
     open(my $cachefh, '<', $dircache) ||
         die "$0: error opening $dircache for reading: $!\n";
     $/ = "\n";
@@ -465,7 +475,10 @@ sub load_cache {
         return 0;
     }
 
-    warn "loading directory cache\n" if $globals{Verbose};
+    if ($verbose) {
+        my $subr = (caller(0))[3];
+        warn "$subr: loading directory cache\n";
+    }
     while (<$cachefh>) {
         /(.*?) (.*)$/;
         $Pages{$1} = $2;
