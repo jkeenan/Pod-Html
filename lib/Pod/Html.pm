@@ -229,11 +229,11 @@ my %globals = ();
 # of pages referenced by L<> links.
 #$globals{Pages} = {};
 my %Pages = ();
-$globals{Curdir} = File::Spec->curdir;
 
 init_globals();
 
 sub init_globals {
+    $globals{Curdir} = File::Spec->curdir;
     $globals{Cachedir} = ".";   # The directory to which directory caches
                                 #   will be written.
     $globals{Dircache} = "pod2htmd.tmp";
