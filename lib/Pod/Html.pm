@@ -227,10 +227,7 @@ This program is distributed under the Artistic License.
 my %globals = ();
 # associative array used to find the location
 # of pages referenced by L<> links.
-#$globals{Pages} = {};
 my %Pages = ();
-
-#init_globals();
 
 sub init_globals {
     $globals{Curdir} = File::Spec->curdir;
@@ -530,13 +527,12 @@ my $Saved_Cache_Key;
 
 sub get_cache {
     my($dircache, $podpath, $podroot, $recurse) = @_;
-    my @cache_key_args = @_;
 
     # A first-level cache:
     # Don't bother reading the cache files if they still apply
     # and haven't changed since we last read them.
 
-    my $this_cache_key = cache_key(@cache_key_args);
+    my $this_cache_key = cache_key($dircache, $podpath, $podroot, $recurse);
     return 1 if $Saved_Cache_Key and $this_cache_key eq $Saved_Cache_Key;
     $Saved_Cache_Key = $this_cache_key;
 
