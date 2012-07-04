@@ -230,7 +230,7 @@ my %globals = ();
 #$globals{Pages} = {};
 my %Pages = ();
 
-init_globals();
+#init_globals();
 
 sub init_globals {
     $globals{Curdir} = File::Spec->curdir;
