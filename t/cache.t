@@ -13,7 +13,7 @@ use Pod::Html;
 use Data::Dumper;
 use Test::More tests => 10;
 
-my $cwd = Pod::Html::_unixify(Cwd::cwd());
+my $cwd = Pod::Html::unixify(Cwd::cwd());
 my $infile = "t/cache.pod";
 my $outfile = "cacheout.html";
 my $cachefile = "pod2htmd.tmp";

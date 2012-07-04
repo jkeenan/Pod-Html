@@ -8,7 +8,7 @@ $VERSION = 1.16;
 @EXPORT_OK = qw(
     parse_command_line
     usage
-    _unixify
+    unixify
 );
 
 #use Carp;
@@ -56,16 +56,16 @@ sub parse_command_line {
     warn "--libpods is no longer supported" if defined $opt_libpods;
 
     $globals{Backlink}  =          $opt_backlink   if defined $opt_backlink;
-    $globals{Cachedir}  = _unixify($opt_cachedir)  if defined $opt_cachedir;
+    $globals{Cachedir}  = unixify($opt_cachedir)  if defined $opt_cachedir;
     $globals{Css}       =          $opt_css        if defined $opt_css;
     $globals{Header}    =          $opt_header     if defined $opt_header;
-    $globals{Htmldir}   = _unixify($opt_htmldir)   if defined $opt_htmldir;
-    $globals{Htmlroot}  = _unixify($opt_htmlroot)  if defined $opt_htmlroot;
+    $globals{Htmldir}   = unixify($opt_htmldir)   if defined $opt_htmldir;
+    $globals{Htmlroot}  = unixify($opt_htmlroot)  if defined $opt_htmlroot;
     $globals{Doindex}   =          $opt_index      if defined $opt_index;
-    $globals{Podfile}   = _unixify($opt_infile)    if defined $opt_infile;
-    $globals{Htmlfile}  = _unixify($opt_outfile)   if defined $opt_outfile;
+    $globals{Podfile}   = unixify($opt_infile)    if defined $opt_infile;
+    $globals{Htmlfile}  = unixify($opt_outfile)   if defined $opt_outfile;
     $globals{Poderrors} =          $opt_poderrors  if defined $opt_poderrors;
-    $globals{Podroot}   = _unixify($opt_podroot)   if defined $opt_podroot;
+    $globals{Podroot}   = unixify($opt_podroot)   if defined $opt_podroot;
     $globals{Quiet}     =          $opt_quiet      if defined $opt_quiet;
     $globals{Recurse}   =          $opt_recurse    if defined $opt_recurse;
     $globals{Title}     =          $opt_title      if defined $opt_title;
@@ -120,7 +120,7 @@ END_OF_USAGE
 
 }
 
-sub _unixify {
+sub unixify {
     my $full_path = shift;
     return '' unless $full_path;
     return $full_path if $full_path eq '/';

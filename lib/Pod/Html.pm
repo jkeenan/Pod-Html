@@ -19,7 +19,7 @@ use lib ( './lib' );
 use Pod::Html::Auxiliary qw(
     parse_command_line
     usage
-    _unixify
+    unixify
 );
 use locale; # make \w work right in non-ASCII lands
 
@@ -286,7 +286,7 @@ sub pod2html {
         # $globals{Htmlfileurl} =
         #   "$globals{Htmldir}/" . substr( $globals{Htmlfile}, length( $globals{Htmldir} ) + 1);
         # Is the above not just "$globals{Htmlfileurl} = $globals{Htmlfile}"?
-        $globals{Htmlfileurl} = _unixify($globals{Htmlfile});
+        $globals{Htmlfileurl} = unixify($globals{Htmlfile});
     }
 
     # load or generate/cache %Pages
@@ -547,7 +547,7 @@ sub _save_page {
                                      File::Spec->canonpath($globals{Podroot}));
 
     # Convert path to unix style path
-    $modspec = _unixify($modspec);
+    $modspec = unixify($modspec);
 
     my ($file, $dir) = fileparse($modspec, qr/\.[^.]*/); # strip .ext
     $Pages{$modname} = $dir.$file;
@@ -562,7 +562,7 @@ use File::Spec;
 use File::Spec::Unix;
 use lib ( './lib' );
 use Pod::Html::Auxiliary qw(
-    _unixify
+    unixify
 );
 
 
@@ -618,7 +618,7 @@ sub resolve_pod_page_link {
         $path = $self->pages->{$to};
     }
 
-    my $url = File::Spec::Unix->catfile(_unixify($self->htmlroot),
+    my $url = File::Spec::Unix->catfile(unixify($self->htmlroot),
                                         $path);
 
     if ($self->htmlfileurl ne '') {
@@ -626,7 +626,7 @@ sub resolve_pod_page_link {
         # $self->htmldir needs to be prepended to link to get the absolute path
         # that will be relativized
         $url = relativize_url(
-            File::Spec::Unix->catdir(_unixify($self->htmldir), $url),
+            File::Spec::Unix->catdir(unixify($self->htmldir), $url),
             $self->htmlfileurl # already unixified
         );
     }

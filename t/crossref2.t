@@ -18,7 +18,7 @@ SKIP: {
     my $output = make_test_dir();
     skip "$output", 1 if $output;
 
-    my $cwd = Pod::Html::_unixify(cwd());
+    my $cwd = Pod::Html::unixify(cwd());
 
     convert_n_test("crossref", "cross references",
      "--podpath=t:testdir/test.lib",
