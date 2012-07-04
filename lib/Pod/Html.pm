@@ -270,24 +270,7 @@ sub pod2html {
 
     init_globals();
     %globals = parse_command_line(%globals);
-
-    # prevent '//' in urls
-    $globals{Htmlroot} = "" if $globals{Htmlroot} eq "/";
-    $globals{Htmldir} =~ s#/\z##;
-
-    if (  $globals{Htmlroot} eq ''
-       && $globals{Htmldir} ne ''
-       && substr( $globals{Htmlfile}, 0, length( $globals{Htmldir} ) ) eq $globals{Htmldir}
-       ) {
-        # Set the 'base' url for this file, so that we can use it
-        # as the location from which to calculate relative links
-        # to other files. If this is '', then absolute links will
-        # be used throughout.
-        # $globals{Htmlfileurl} =
-        #   "$globals{Htmldir}/" . substr( $globals{Htmlfile}, length( $globals{Htmldir} ) + 1);
-        # Is the above not just "$globals{Htmlfileurl} = $globals{Htmlfile}"?
-        $globals{Htmlfileurl} = unixify($globals{Htmlfile});
-    }
+    %globals = _globals_cleanup(%globals);
 
     # load or generate/cache %Pages
     unless (get_cache($globals{Dircache}, $globals{Podpath}, $globals{Podroot}, $globals{Recurse})) {
@@ -552,6 +535,30 @@ sub _save_page {
     my ($file, $dir) = fileparse($modspec, qr/\.[^.]*/); # strip .ext
     $Pages{$modname} = $dir.$file;
 }
+
+sub _globals_cleanup {
+    my %globals = @_;
+    # prevent '//' in urls
+    $globals{Htmlroot} = "" if $globals{Htmlroot} eq "/";
+    $globals{Htmldir} =~ s#/\z##;
+
+    if (  $globals{Htmlroot} eq ''
+       && $globals{Htmldir} ne ''
+       && substr( $globals{Htmlfile}, 0, length( $globals{Htmldir} ) ) eq $globals{Htmldir}
+       ) {
+        # Set the 'base' url for this file, so that we can use it
+        # as the location from which to calculate relative links
+        # to other files. If this is '', then absolute links will
+        # be used throughout.
+        # $globals{Htmlfileurl} =
+        #   "$globals{Htmldir}/" . substr( $globals{Htmlfile}, length( $globals{Htmldir} ) + 1);
+        # Is the above not just "$globals{Htmlfileurl} = $globals{Htmlfile}"?
+        $globals{Htmlfileurl} = unixify($globals{Htmlfile});
+    }
+    return %globals;
+}
+
+1;
 
 package Pod::Simple::XHTML::LocalPodLinks;
 use strict;
