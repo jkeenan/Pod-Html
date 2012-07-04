@@ -129,7 +129,7 @@ sub unixify {
     my @dirs = $dirs eq File::Spec->curdir()
                ? (File::Spec::Unix->curdir())
                : File::Spec->splitdir($dirs);
-    if (defined($vol) && $vol) {
+    if ($vol) {
         $vol =~ s/:$// if $^O eq 'VMS';
         $vol = uc $vol if $^O eq 'MSWin32';
 
@@ -142,8 +142,10 @@ sub unixify {
     }
     unshift @dirs, '' if File::Spec->file_name_is_absolute($full_path);
     return $file unless scalar(@dirs);
-    $full_path = File::Spec::Unix->catfile(File::Spec::Unix->catdir(@dirs),
-                                           $file);
+    $full_path = File::Spec::Unix->catfile(
+        File::Spec::Unix->catdir(@dirs),
+        $file,
+    );
     $full_path =~ s|^\/|| if $^O eq 'MSWin32'; # C:/foo works, /C:/foo doesn't
     return $full_path;
 }
