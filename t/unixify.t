@@ -4,7 +4,7 @@ use Cwd;
 use File::Spec;
 use File::Spec::Unix;
 use Pod::Html::Auxiliary qw( unixify );
-use Test::More qw(no_plan); # tests => 1;
+use Test::More tests => 4;
 
 my $cwd = cwd();
 my @curdirs = File::Spec::Unix::curdir();
@@ -24,3 +24,4 @@ SKIP: {
     $full_path = 'foobar';
     is(unixify($full_path), $full_path, "Got expected file");
 }
+

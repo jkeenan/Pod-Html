@@ -1,7 +1,7 @@
 # -*- perl -*-
 use strict;
 use Pod::Html::Auxiliary qw( usage );
-use Test::More qw(no_plan); # tests => 1;
+use Test::More tests => 3;
 
 {
     local $@ = undef;
@@ -20,11 +20,3 @@ use Test::More qw(no_plan); # tests => 1;
     like($@, qr/Usage:\s+$0\s+--help/s,
         "Got expected help output for usage() with no arguments");
 }
-
-__END__
-$@ = '';
-print STDERR $@;
-#    like($@, qr/Usage:\s+$0\s+--help/s,
-#        "Got expected help output for usage() with no arguments");
-    pass($0);
-#eval { usage( "./t/cache.t" ); };
