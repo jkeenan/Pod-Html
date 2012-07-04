@@ -225,7 +225,6 @@ This program is distributed under the Artistic License.
 =cut
 
 my %globals = ();
-$globals{Podpath} = [];
 # associative array used to find the location
 # of pages referenced by L<> links.
 $globals{Pages} = {};
@@ -234,17 +233,15 @@ $globals{Curdir} = File::Spec->curdir;
 init_globals();
 
 sub init_globals {
-    $globals{Cachedir} = ".";            # The directory to which directory caches
+    $globals{Cachedir} = ".";   # The directory to which directory caches
                                 #   will be written.
-
     $globals{Dircache} = "pod2htmd.tmp";
-
-    $globals{Htmlroot} = "/";            # http-server base directory from which all
+    $globals{Htmlroot} = "/";   # http-server base directory from which all
                                 #   relative paths in $podpath stem.
-    $globals{Htmldir} = "";              # The directory to which the html pages
+    $globals{Htmldir} = "";     # The directory to which the html pages
                                 #   will (eventually) be written.
-    $globals{Htmlfile} = "";             # write to stdout by default
-    $globals{Htmlfileurl} = "";          # The url that other files would use to
+    $globals{Htmlfile} = "";    # write to stdout by default
+    $globals{Htmlfileurl} = ""; # The url that other files would use to
                                 # refer to this file.  This is only used
                                 # to make relative urls that point to
                                 # other files.
