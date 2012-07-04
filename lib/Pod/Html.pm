@@ -266,7 +266,7 @@ sub pod2html {
     local $_;
 
     init_globals();
-    parse_command_line();
+    %globals = parse_command_line(%globals);
 
     # prevent '//' in urls
     $globals{Htmlroot} = "" if $globals{Htmlroot} eq "/";
@@ -463,6 +463,7 @@ END_OF_USAGE
 }
 
 sub parse_command_line {
+    my %globals = @_;
     my ($opt_backlink,$opt_cachedir,$opt_css,$opt_flush,$opt_header,
         $opt_help,$opt_htmldir,$opt_htmlroot,$opt_index,$opt_infile,
         $opt_outfile,$opt_poderrors,$opt_podpath,$opt_podroot,
@@ -520,6 +521,7 @@ sub parse_command_line {
     if (defined $opt_flush) {
         1 while unlink($globals{Dircache});
     }
+    return %globals;
 }
 
 my $Saved_Cache_Key;
