@@ -14,7 +14,8 @@ sub make_test_dir {
         warn "Directory 'test.lib' exists (it shouldn't yet) - removing it";
         rem_test_dir();
     }
-    mkdir('testdir/test.lib') or return "Could not make test.lib directory: $!\n";
+    mkdir('testdir/test.lib')
+        or return "Could not make test.lib directory: $!\n";
     copy('testdir/perlpodspec-copy.pod', 'testdir/test.lib/podspec-copy.pod')
         or return "Could not copy perlpodspec-copy: $!";
     copy('testdir/perlvar-copy.pod', 'testdir/test.lib/var-copy.pod')
@@ -48,23 +49,22 @@ sub convert_n_test {
         @p2h_args,
     );
 
-
     my ($expect, $result);
     {
-	local $/;
-	# expected
-	$expect = <DATA>;
-	$expect =~ s/\[PERLADMIN\]/$Config::Config{perladmin}/;
-	$expect =~ s/\[RELCURRENTWORKINGDIRECTORY\]/$relcwd/g;
-	$expect =~ s/\[ABSCURRENTWORKINGDIRECTORY\]/$cwd/g;
-	if (ord("A") == 193) { # EBCDIC.
-	    $expect =~ s/item_mat_3c_21_3e/item_mat_4c_5a_6e/;
-	}
-
-	# result
-	open my $in, $outfile or die "cannot open $outfile: $!";
-	$result = <$in>;
-	close $in;
+        local $/;
+        # expected
+        $expect = <DATA>;
+        $expect =~ s/\[PERLADMIN\]/$Config::Config{perladmin}/;
+        $expect =~ s/\[RELCURRENTWORKINGDIRECTORY\]/$relcwd/g;
+        $expect =~ s/\[ABSCURRENTWORKINGDIRECTORY\]/$cwd/g;
+        if (ord("A") == 193) { # EBCDIC.
+            $expect =~ s/item_mat_3c_21_3e/item_mat_4c_5a_6e/;
+        }
+    
+        # result
+        open my $in, $outfile or die "cannot open $outfile: $!";
+        $result = <$in>;
+        close $in;
     }
 
     my $diff = '/bin/diff';
@@ -75,20 +75,20 @@ sub convert_n_test {
     $diff = 'fc/n' if $^O =~ /^MSWin/;
     $diff = 'differences' if $^O eq 'VMS';
     if ($diff) {
-	ok($expect eq $result, $testname) or do {
-	  my $expectfile = "${podfile}_expected.tmp";
-	  open my $tmpfile, ">", $expectfile or die $!;
-	  print $tmpfile $expect;
-	  close $tmpfile;
-	  open my $diff_fh, "$diff $diffopt $expectfile $outfile |" or die $!;
-	  print STDERR "# $_" while <$diff_fh>;
-	  close $diff_fh;
-	  unlink $expectfile;
-	};
+        ok($expect eq $result, $testname) or do {
+            my $expectfile = "${podfile}_expected.tmp";
+            open my $tmpfile, ">", $expectfile or die $!;
+            print $tmpfile $expect;
+            close $tmpfile;
+            open my $diff_fh, "$diff $diffopt $expectfile $outfile |" or die $!;
+            print STDERR "# $_" while <$diff_fh>;
+            close $diff_fh;
+            unlink $expectfile;
+        };
     } else {
-	# This is fairly evil, but lets us get detailed failure modes
-	# anywhere that we've failed to identify a diff program.
-	is($expect, $result, $testname);
+        # This is fairly evil, but lets us get detailed failure modes
+        # anywhere that we've failed to identify a diff program.
+        is($expect, $result, $testname);
     }
 
     # pod2html creates these
