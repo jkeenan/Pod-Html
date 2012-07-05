@@ -392,18 +392,22 @@ HTMLFOOT
     $parser->parse_file($input);
 
     # Write output to file
-    $globals{Htmlfile} = "-" unless $globals{Htmlfile}; # stdout
-    my $fhout;
-    if($globals{Htmlfile} and $globals{Htmlfile} ne '-') {
-        open $fhout, ">", $globals{Htmlfile}
+    my $FHOUT;
+    if ($globals{Htmlfile}) {
+        open $FHOUT, ">", $globals{Htmlfile}
             or die "$0: cannot open $globals{Htmlfile} file for output: $!\n";
-    } else {
-        open $fhout, ">-";
+        binmode $FHOUT, ":utf8";
+        print $FHOUT $output;
+        close $FHOUT or die "Failed to close $globals{Htmlfile}: $!";
+        chmod 0644, $globals{Htmlfile};
     }
-    binmode $fhout, ":utf8";
-    print $fhout $output;
-    close $fhout or die "Failed to close $globals{Htmlfile}: $!";
-    chmod 0644, $globals{Htmlfile} unless $globals{Htmlfile} eq '-';
+    else {
+        $globals{Htmlfile} = "-"; # stdout
+        open $FHOUT, ">-";
+        binmode $FHOUT, ":utf8";
+        print $FHOUT $output;
+        close $FHOUT or die "Failed to close $globals{Htmlfile}: $!";
+    }
 }
 
 ##############################################################################
