@@ -393,7 +393,7 @@ HTMLFOOT
 
     # Write output to file
     my $FHOUT;
-    if ($globals{Htmlfile}) {
+    if ($globals{Htmlfile} and $globals{Htmlfile} ne '-') {
         open $FHOUT, ">", $globals{Htmlfile}
             or die "$0: cannot open $globals{Htmlfile} file for output: $!\n";
         binmode $FHOUT, ":utf8";
@@ -402,11 +402,10 @@ HTMLFOOT
         chmod 0644, $globals{Htmlfile};
     }
     else {
-        $globals{Htmlfile} = "-"; # stdout
         open $FHOUT, ">-";
         binmode $FHOUT, ":utf8";
         print $FHOUT $output;
-        close $FHOUT or die "Failed to close $globals{Htmlfile}: $!";
+        close $FHOUT or die "Failed to close handle to STDOUT: $!";
     }
 }
 
