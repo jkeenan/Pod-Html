@@ -325,10 +325,6 @@ sub pod2html {
     $parser->quiet($globals{Quiet});
     $parser->verbose($globals{Verbose});
 
-    # XXX: implement default title generator in pod::simple::xhtml
-    # copy the way the old Pod::Html did it
-    $globals{Title} = html_escape($globals{Title});
-
     # We need to add this ourselves because we use our own header, not
     # ::XHTML's header. We need to set $parser->backlink to linkify
     # the =head1 directives
@@ -568,6 +564,11 @@ sub _globals_cleanup {
         # Is the above not just "$globals{Htmlfileurl} = $globals{Htmlfile}"?
         $globals{Htmlfileurl} = unixify($globals{Htmlfile});
     }
+
+    # XXX: implement default title generator in pod::simple::xhtml
+    # copy the way the old Pod::Html did it
+    $globals{Title} = html_escape($globals{Title});
+
     return %globals;
 }
 
