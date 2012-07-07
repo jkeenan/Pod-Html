@@ -290,10 +290,10 @@ sub pod2html {
 
         # cache the directory list for later use
         warn "caching directories for later use\n" if $globals{Verbose};
-        open my $cache, '>', $globals{Dircache}
+        open my $CACHE, '>', $globals{Dircache}
             or die "$0: error open $globals{Dircache} for writing: $!\n";
 
-        print $cache join(":", @{$globals{Podpath}}) . "\n$globals{Podroot}\n";
+        print $CACHE join(":", @{$globals{Podpath}}) . "\n$globals{Podroot}\n";
         my $_updirs_only = ($globals{Podroot} =~ /\.\./) && !($globals{Podroot} =~ /[^\.\\\/]/);
         foreach my $key (keys %Pages) {
             if($_updirs_only) {
@@ -304,10 +304,10 @@ sub pod2html {
                 $Pages{$key} =~ s/^[\w\s\-\.]+\///;
               }
             }
-            print $cache "$key $Pages{$key}\n";
+            print $CACHE "$key $Pages{$key}\n";
         }
 
-        close $cache or die "error closing $globals{Dircache}: $!";
+        close $CACHE or die "error closing $globals{Dircache}: $!";
     }
 
     # set options for the parser
