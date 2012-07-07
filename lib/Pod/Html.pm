@@ -454,23 +454,23 @@ sub load_cache {
         my $subr = (caller(0))[3];
         warn "$subr: scanning for directory cache\n";
     }
-    open(my $cachefh, '<', $dircache) ||
+    open(my $CACHEFH, '<', $dircache) ||
         die "$0: error opening $dircache for reading: $!\n";
     $/ = "\n";
 
     # is it the same podpath?
-    $_ = <$cachefh>;
+    $_ = <$CACHEFH>;
     chomp($_);
     $tests++ if (join(":", @$podpath) eq $_);
 
     # is it the same podroot?
-    $_ = <$cachefh>;
+    $_ = <$CACHEFH>;
     chomp($_);
     $tests++ if ($podroot eq $_);
 
     # load the cache if its good
     if ($tests != 2) {
-        close($cachefh);
+        close($CACHEFH);
         return 0;
     }
 
@@ -478,12 +478,12 @@ sub load_cache {
         my $subr = (caller(0))[3];
         warn "$subr: loading directory cache\n";
     }
-    while (<$cachefh>) {
+    while (<$CACHEFH>) {
         /(.*?) (.*)$/;
         $Pages{$1} = $2;
     }
 
-    close($cachefh);
+    close($CACHEFH);
     return 1;
 }
 
