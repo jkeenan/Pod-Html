@@ -12,7 +12,7 @@ ok($p2h, 'Pod::Html returned true value');
 isa_ok($p2h, 'Pod::Html');
 
 $rv = $p2h->process_options( {
-    verbose => 1,
+    Verbose => 1,
     flush => 1, 
  } );
 ok($rv, "process_options() returned true value");
@@ -22,7 +22,7 @@ ok($rv, "process_options() returned true value");
     local $SIG{__WARN__} = sub { $warning = $_[0]; };
     $p2h->cleanup_elements();
     like($warning, qr/Flushing directory caches/,
-        "process_options(): got expected warning with 'flush' and 'verbose'");
+        "process_options(): got expected warning with 'flush' and 'Verbose'");
 }
 
 $p2h = Pod::Html->new();
@@ -47,7 +47,7 @@ ok(! defined $p2h->get('Saved_Cache_Key'),
 $p2h = Pod::Html->new();
 ok($p2h, 'Pod::Html returned true value');
 $rv = $p2h->process_options( {
-    verbose => 1, 
+    Verbose => 1, 
  } );
 ok($rv, "process_options() returned true value");
 {
@@ -55,7 +55,7 @@ ok($rv, "process_options() returned true value");
     local $SIG{__WARN__} = sub { $warning = $_[0]; };
     $p2h->cleanup_elements();
     unlike($warning, qr/Flushing directory caches/,
-        "process_options(): as expected, no warning with only 'verbose'");
+        "process_options(): as expected, no warning with only 'Verbose'");
 }
 
 {

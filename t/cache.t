@@ -108,24 +108,16 @@ my $warn;
     close $cache;
     is($podpath, "scooby:shaggy:fred:velma:daphne", "podpath");
     is($podroot, "$cwd", "podroot");
-    TODO: {
-        local $TODO = 'get_cache() not yet integrated';
-        like(
-            $warn,
-            qr/scanning for directory cache/s,
-            "got verbose output: scanning",
-        );
-        like(
-            $warn,
-            qr/loading directory cache/s,
-            "got verbose output: loading",
-        );
-        like(
-            $warn,
-            qr/Converting input file/s,
-            "got verbose output: Converting",
-        );
-    }
+    like(
+        $warn,
+        qr/scanning for directory cache/s,
+        "got verbose output: scanning",
+    );
+    like(
+        $warn,
+        qr/loading directory cache/s,
+        "got verbose output: loading",
+    );
 }
 $warn = undef;
 %pages = ();
