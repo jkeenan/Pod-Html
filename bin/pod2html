@@ -132,6 +132,8 @@ my $options = parse_command_line();
 
 my $p2h = Pod::Html->new();
 $p2h->process_options( $options );
-print Dumper $p2h;
+#print Dumper $p2h;
 $p2h->cleanup_elements();
 print Dumper $p2h;
+$p2h->generate_pages_cache();
+print Dumper { %Pod::Html::Pages };

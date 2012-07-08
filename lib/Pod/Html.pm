@@ -6,10 +6,10 @@ $VERSION = 1.16;
 use Carp;
 #use Config;
 use Cwd;
-use File::Basename;
+use File::Basename qw( fileparse );
 use File::Spec;
 #use File::Spec::Unix;
-#use Pod::Simple::Search;
+use Pod::Simple::Search;
 use lib ( './lib' );
 #use Pod::Simple::XHTML::LocalPodLinks;
 use Pod::Html::Auxiliary qw(
@@ -109,6 +109,7 @@ sub cleanup_elements {
 }
 
 sub generate_pages_cache {
+    my $self = shift;
 #    unless (get_cache($globals{Dircache}, $globals{Podpath},
 #            $globals{Podroot}, $globals{Recurse}, $globals{Verbose})) {
         # generate %Pages
@@ -120,6 +121,10 @@ sub generate_pages_cache {
         # - callback used to remove Podroot and extension from each file
         # - laborious to allow '.' in dirnames (e.g., /usr/share/perl/5.14.1)
 #        Pod::Simple::Search->new->inc(0)->verbose($self->{Verbose})->laborious(1) ->callback(\&_save_page)->recurse($self->{Recurse})->survey(@{$self->{Podpath}});
+        my $name2path = Pod::Simple::Search->new->inc(0)->verbose($self->{Verbose})->laborious(1)->recurse($self->{Recurse})->survey(@{$self->{Podpath}});
+        foreach my $modname (sort keys %{$name2path}) {
+            $self->_save_page($name2path->{$modname}, $modname);
+        }
 
         chdir($pwd) || die "$0: error changing to directory $pwd: $!\n";
 
@@ -152,6 +157,27 @@ sub get {
     return unless (exists $self->{$element} and defined $self->{$element});
     return $self->{$element};
 }
+
+#
+# store POD files in %Pages
+#
+sub _save_page {
+#    my ($modspec, $modname) = @_;
+    my ($self, $modspec, $modname) = @_;
+
+    # Remove Podroot from path
+    $modspec = $self->{Podroot} eq File::Spec->curdir
+               ? File::Spec->abs2rel($modspec)
+               : File::Spec->abs2rel($modspec,
+                                     File::Spec->canonpath($self->{Podroot}));
+
+    # Convert path to unix style path
+    $modspec = unixify($modspec);
+
+    my ($file, $dir) = fileparse($modspec, qr/\.[^.]*/); # strip .ext
+    $Pages{$modname} = $dir.$file;
+}
+
 
 #sub get_cache {
 #    my($dircache, $podpath, $podroot, $recurse, $verbose) = @_;
