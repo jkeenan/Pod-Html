@@ -20,7 +20,7 @@ use Pod::Html::Auxiliary qw(
 #    usage
 use locale; # make \w work right in non-ASCII lands
 
-our %Pages;
+#our %Pages;
 
 sub new {
     my $class = shift;
@@ -113,12 +113,12 @@ sub generate_pages_cache {
     my $cache_tests = $self->get_cache();
     return if $cache_tests;
 
-    # generate %Pages
+    # generate %{$self->{Pages}}
     my $pwd = getcwd();
     chdir($self->{Podroot}) || 
         die "$0: error changing to directory $self->{Podroot}: $!\n";
 
-    # find all pod modules/pages in podpath, store in %Pages
+    # find all pod modules/pages in podpath, store in %{$self->{Pages}}
     # - callback used to remove Podroot and extension from each file
     # - laborious to allow '.' in dirnames (e.g., /usr/share/perl/5.14.1)
     my $name2path = Pod::Simple::Search->new->inc(0)->verbose($self->{Verbose})->laborious(1)->recurse($self->{Recurse})->survey(@{$self->{Podpath}});
@@ -135,16 +135,16 @@ sub generate_pages_cache {
 
     print $CACHE join(":", @{$self->{Podpath}}) . "\n$self->{Podroot}\n";
     my $_updirs_only = ($self->{Podroot} =~ /\.\./) && !($self->{Podroot} =~ /[^\.\\\/]/);
-    foreach my $key (keys %Pages) {
+    foreach my $key (keys %{$self->{Pages}}) {
         if($_updirs_only) {
           my $_dirlevel = $self->{Podroot};
           while($_dirlevel =~ /\.\./) {
             $_dirlevel =~ s/\.\.//;
-            # Assume $Pages{$key} has '/' separators (html dir separators).
-            $Pages{$key} =~ s/^[\w\s\-\.]+\///;
+            # Assume $self->{Pages}->{$key} has '/' separators (html dir separators).
+            $self->{Pages}->{$key} =~ s/^[\w\s\-\.]+\///;
           }
         }
-        print $CACHE "$key $Pages{$key}\n";
+        print $CACHE "$key $self->{Pages}->{$key}\n";
     }
 
     close $CACHE or die "error closing $self->{Dircache}: $!";
@@ -158,7 +158,7 @@ sub get {
 }
 
 #
-# store POD files in %Pages
+# store POD files in %{$self->{Pages}}
 #
 sub _save_page {
     my ($self, $modspec, $modname) = @_;
@@ -173,7 +173,7 @@ sub _save_page {
     $modspec = unixify($modspec);
 
     my ($file, $dir) = fileparse($modspec, qr/\.[^.]*/); # strip .ext
-    $Pages{$modname} = $dir.$file;
+    $self->{Pages}->{$modname} = $dir.$file;
 }
 
 
@@ -191,7 +191,7 @@ sub get_cache {
     );
     $self->{Saved_Cache_Key} = $this_cache_key;
 
-    # load the cache of %Pages if possible.  $tests will be
+    # load the cache of %{$self->{Pages}} if possible.  $tests will be
     # non-zero if successful.
     my $tests = 0;
     if (-f $self->{Dircache}) {
@@ -217,7 +217,7 @@ sub cache_key {
 }
 
 ## load_cache - tries to find if the cache stored in $dircache is a valid
-##  cache of %Pages.  if so, it loads them and returns a non-zero value.
+##  cache of %{$self->{Pages}}.  if so, it loads them and returns a non-zero value.
 ##
 sub load_cache {
     my $self = shift;
@@ -254,7 +254,7 @@ sub load_cache {
     }
     while (<$CACHEFH>) {
         /(.*?) (.*)$/;
-        $Pages{$1} = $2;
+        $self->{Pages}->{$1} = $2;
     }
 
     close($CACHEFH);
