@@ -255,5 +255,11 @@ sub _save_page {
 #    return 1;
 #}
 
+=head1 NAME
+
+Pod::Html - module to convert pod files to HTML
+
+=cut
+
 1;
 
