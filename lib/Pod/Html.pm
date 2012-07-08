@@ -16,8 +16,6 @@ use Pod::Html::Auxiliary qw(
     html_escape
     unixify
 );
-#    parse_command_line
-#    usage
 use locale; # make \w work right in non-ASCII lands
 
 
@@ -128,7 +126,9 @@ sub generate_pages_cache {
     chdir($pwd) || die "$0: error changing to directory $pwd: $!\n";
 
     # cache the directory list for later use
-    warn "caching directories for later use\n" if $self->{Verbose};
+    if ($self->{Verbose}) {
+        warn "caching directories for later use\n";
+    }
     open my $CACHE, '>', $self->{Dircache}
         or die "$0: error open $self->{Dircache} for writing: $!\n";
 
@@ -147,6 +147,7 @@ sub generate_pages_cache {
     }
 
     close $CACHE or die "error closing $self->{Dircache}: $!";
+    return 1;
 }
 
 sub get {

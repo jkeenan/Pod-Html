@@ -16,21 +16,21 @@ use Pod::Html::Auxiliary qw(
 );
 use Data::Dumper;
 use Test::More qw(no_plan); # tests => 10;
+use IO::CaptureOutput qw( capture );
 
-my ($options, $p2h);
+my ($options, $p2h, $rv);
 my $cwd = Pod::Html::unixify(Cwd::cwd());
 my $infile = "t/cache.pod";
 my $outfile = "cacheout.html";
 my $cachefile = "pod2htmd.tmp";
 my $tcachefile = "t/pod2htmd.tmp";
-my %pages;
-my %expected_pages;
 my ($cache, $podpath, $podroot);
 
 unlink $cachefile, $tcachefile;
 is(-f $cachefile, undef, "No cache file to start");
 is(-f $tcachefile, undef, "No cache file to start");
 
+# I.
 # test podpath and podroot
 $options = {
     Podfile => unixify($infile),
@@ -41,7 +41,9 @@ $options = {
 $p2h = Pod::Html->new();
 $p2h->process_options( $options );
 $p2h->cleanup_elements();
-$p2h->generate_pages_cache();
+$rv = $p2h->generate_pages_cache();
+ok(defined($rv),
+    "generate_pages_cache() returned defined value, indicating full run");
 
 is(-f $cachefile, 1, "Cache created");
 open($cache, '<', $cachefile) or die "Cannot open cache file: $!";
@@ -51,94 +53,26 @@ close $cache;
 is($podpath, "scooby:shaggy:fred:velma:daphne", "podpath");
 is($podroot, "$cwd", "podroot");
 
-## test cache contents
-$options = {
-    Podfile => unixify($infile),
-    Htmlfile => unixify($outfile),
-    Cachedir => unixify('t'),
-    Podpath => [ split ':', "t" ],
-    Htmldir => unixify($cwd),
-};
-$p2h = Pod::Html->new();
-$p2h->process_options( $options );
-$p2h->cleanup_elements();
-$p2h->generate_pages_cache();
-is(-f $tcachefile, 1, "Cache created");
-open($cache, '<', $tcachefile) or die "Cannot open cache file: $!";
-chomp($podpath = <$cache>);
-chomp($podroot = <$cache>);
-is($podpath, "t", "podpath");
-%pages = ();
-while (<$cache>) {
-    /(.*?) (.*)$/;
-    $pages{$1} = $2;
-}
-chdir("t");
-%expected_pages = 
-    # chop off the .pod and set the path
-    map { my $f = substr($_, 0, -4); $f => "t/$f" }
-    <*.pod>;
-chdir($cwd);
-is_deeply(\%pages, \%expected_pages, "cache contents");
-close $cache;
-%pages = ();
-%expected_pages = ();
-
-# Tests for verbose output
-{
-    my $warn;
-    local $SIG{__WARN__} = sub { $warn .= $_[0] };
-    
-    # test podpath and podroot
-    $options = {
-        Podfile => unixify($infile),
-        Htmlfile => unixify($outfile),
-        Podpath => [ split ':', "scooby:shaggy:fred:velma:daphne" ],
-        Podroot => $cwd,
-        Verbose => 1,
-    };
-    $p2h = Pod::Html->new();
-    $p2h->process_options( $options );
-    $p2h->cleanup_elements();
-    $p2h->generate_pages_cache();
-    is(-f $cachefile, 1, "Cache created");
-    open($cache, '<', $cachefile) or die "Cannot open cache file: $!";
-    chomp($podpath = <$cache>);
-    chomp($podroot = <$cache>);
-    close $cache;
-    is($podpath, "scooby:shaggy:fred:velma:daphne", "podpath");
-    is($podroot, "$cwd", "podroot");
-    like(
-        $warn,
-        qr/scanning for directory cache/s,
-        "got verbose output: scanning",
-    );
-    like(
-        $warn,
-        qr/loading directory cache/s,
-        "got verbose output: loading",
-    );
-}
-%pages = ();
-%expected_pages = ();
-
+# II.
 # test cache contents
 {
-    my $warn;
-    local $SIG{__WARN__} = sub { $warn .= $_[0] };
-
+    my %pages = ();
+    my %expected_pages = ();
     $options = {
         Podfile => unixify($infile),
         Htmlfile => unixify($outfile),
         Cachedir => unixify('t'),
         Podpath => [ split ':', "t" ],
         Htmldir => unixify($cwd),
-        Verbose => 1,
     };
     $p2h = Pod::Html->new();
     $p2h->process_options( $options );
     $p2h->cleanup_elements();
-    $p2h->generate_pages_cache();
+    my $ucachefile = $p2h->get('Dircache');
+    ok( ! (-f $ucachefile), "'Dircache' set but file $ucachefile does not exist");
+    $rv = $p2h->generate_pages_cache();
+    ok(defined($rv),
+        "generate_pages_cache() returned defined value, indicating full run");
     is(-f $tcachefile, 1, "Cache created");
     open($cache, '<', $tcachefile) or die "Cannot open cache file: $!";
     chomp($podpath = <$cache>);
@@ -157,22 +91,137 @@ close $cache;
     chdir($cwd);
     is_deeply(\%pages, \%expected_pages, "cache contents");
     close $cache;
-    like(
-        $warn,
-        qr/scanning for directory cache/s,
-        "got verbose output: scanning",
-    );
-    like(
-        $warn,
-        qr/loading directory cache/s,
-        "got verbose output: loading",
-    );
+    ok( (-f $ucachefile), "'Dircache' now set and file $ucachefile exists");
+
+    # IIa.
+    # Now that the cachefile exists, we'll conduct another run to exercise
+    # other parts of the code.
+    $rv = $p2h->generate_pages_cache();
+    ok(! defined($rv),
+        "generate_pages_cache() returned undefined value, indicating no need for full run");
 }
-%pages = ();
-%expected_pages = ();
+# Cleanup
+1 while unlink $outfile;
+1 while unlink $cachefile;
+1 while unlink $tcachefile;
+is(-f $cachefile, undef, "No cache file to end");
+is(-f $tcachefile, undef, "No cache file to end");
+
+########## Tests for verbose output ##########
+
+is(-f $cachefile, undef, "No cache file to start");
+is(-f $tcachefile, undef, "No cache file to start");
+
+# III.
+# test podpath and podroot
+{
+    $options = {
+        Podfile => unixify($infile),
+        Htmlfile => unixify($outfile),
+        Podpath => [ split ':', "scooby:shaggy:fred:velma:daphne" ],
+        Podroot => $cwd,
+        Verbose => 1,
+    };
+    $p2h = Pod::Html->new();
+    $p2h->process_options( $options );
+    $p2h->cleanup_elements();
+    {
+        my ($stdout, $stderr);
+        capture(
+            sub { $rv = $p2h->generate_pages_cache(); },
+            \$stdout,
+            \$stderr,
+        );
+        ok(defined($rv),
+            "generate_pages_cache() returned defined value, indicating full run");
+        like($stderr, qr/caching directories for later use/s,
+            "generate_pages_cache(): verbose: caching directories");
+    }
+    is(-f $cachefile, 1, "Cache created");
+    open($cache, '<', $cachefile) or die "Cannot open cache file: $!";
+    chomp($podpath = <$cache>);
+    chomp($podroot = <$cache>);
+    close $cache;
+    is($podpath, "scooby:shaggy:fred:velma:daphne", "podpath");
+    is($podroot, "$cwd", "podroot");
+}
+
+# IV.
+# test cache contents
+{
+    my %pages = ();
+    my %expected_pages = ();
+#    my $warn;
+#    local $SIG{__WARN__} = sub { $warn .= $_[0] };
+
+    $options = {
+        Podfile => unixify($infile),
+        Htmlfile => unixify($outfile),
+        Cachedir => unixify('t'),
+        Podpath => [ split ':', "t" ],
+        Htmldir => unixify($cwd),
+        Verbose => 1,
+    };
+    $p2h = Pod::Html->new();
+    $p2h->process_options( $options );
+    $p2h->cleanup_elements();
+    {
+        my ($stdout, $stderr);
+        capture(
+            sub { $rv = $p2h->generate_pages_cache(); },
+            \$stdout,
+            \$stderr,
+        );
+        ok(defined($rv),
+            "generate_pages_cache() returned defined value, indicating full run");
+        like($stderr, qr/caching directories for later use/s,
+            "generate_pages_cache(): verbose: caching directories");
+    }
+    is(-f $tcachefile, 1, "Cache created");
+    open($cache, '<', $tcachefile) or die "Cannot open cache file: $!";
+    chomp($podpath = <$cache>);
+    chomp($podroot = <$cache>);
+    is($podpath, "t", "podpath");
+    %pages = ();
+    while (<$cache>) {
+        /(.*?) (.*)$/;
+        $pages{$1} = $2;
+    }
+    chdir("t");
+    %expected_pages = 
+        # chop off the .pod and set the path
+        map { my $f = substr($_, 0, -4); $f => "t/$f" }
+        <*.pod>;
+    chdir($cwd);
+    is_deeply(\%pages, \%expected_pages, "cache contents");
+    close $cache;
+
+    # IVa.
+    # Now that the cachefile exists, we'll conduct another run to exercise
+    # other parts of the code.
+    {
+        my ($stdout, $stderr);
+        capture(
+            sub { $rv = $p2h->generate_pages_cache(); },
+            \$stdout,
+            \$stderr,
+        );
+        ok(! defined($rv),
+            "generate_pages_cache() returned undefined value, indicating no need for full run");
+        like(
+            $stderr,
+            qr/scanning for directory cache/s,
+            "got verbose output: scanning",
+        );
+        like(
+            $stderr,
+            qr/loading directory cache/s,
+            "got verbose output: loading",
+        );
+    }
+}
 
 # Cleanup
-
 1 while unlink $outfile;
 1 while unlink $cachefile;
 1 while unlink $tcachefile;
