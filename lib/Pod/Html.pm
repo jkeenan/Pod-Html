@@ -20,7 +20,6 @@ use Pod::Html::Auxiliary qw(
 #    usage
 use locale; # make \w work right in non-ASCII lands
 
-#our %Pages;
 
 sub new {
     my $class = shift;
