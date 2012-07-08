@@ -85,8 +85,8 @@ close $cache;
 %expected_pages = ();
 
 # Tests for verbose output
-my $warn;
 {
+    my $warn;
     local $SIG{__WARN__} = sub { $warn .= $_[0] };
     
     # test podpath and podroot
@@ -119,12 +119,12 @@ my $warn;
         "got verbose output: loading",
     );
 }
-$warn = undef;
 %pages = ();
 %expected_pages = ();
 
 # test cache contents
 {
+    my $warn;
     local $SIG{__WARN__} = sub { $warn .= $_[0] };
 
     $options = {
@@ -157,9 +157,17 @@ $warn = undef;
     chdir($cwd);
     is_deeply(\%pages, \%expected_pages, "cache contents");
     close $cache;
-    # TODO: Tests for verbose output capture in $SIG{__WARN__}
+    like(
+        $warn,
+        qr/scanning for directory cache/s,
+        "got verbose output: scanning",
+    );
+    like(
+        $warn,
+        qr/loading directory cache/s,
+        "got verbose output: loading",
+    );
 }
-$warn = undef;
 %pages = ();
 %expected_pages = ();
 
