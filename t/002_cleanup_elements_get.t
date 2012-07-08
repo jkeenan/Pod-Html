@@ -91,7 +91,7 @@ ok($rv, "process_options() returned true value");
     ok($p2h, 'Pod::Html returned true value');
     $rv = $p2h->process_options( {
         Htmlroot => '/some/path', 
-        Htmldir  => undef, 
+        Htmldir  => '', 
      } );
     ok($rv, "process_options() returned true value");
     eval { $rv = $p2h->cleanup_elements(); };
