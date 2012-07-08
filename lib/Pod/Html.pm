@@ -587,6 +587,7 @@ use File::Spec::Unix;
 use lib ( './lib' );
 use Pod::Html::Auxiliary qw(
     unixify
+    relativize_url
 );
 
 
@@ -659,33 +660,5 @@ sub resolve_pod_page_link {
 }
 
 #
-# relativize_url - convert an absolute URL to one relative to a base URL.
-# Assumes both end in a filename.
-#
-sub relativize_url {
-    my ($dest, $source) = @_;
-
-    # Remove each file from its path
-    my ($dest_volume, $dest_directory, $dest_file) =
-        File::Spec::Unix->splitpath( $dest );
-    $dest = File::Spec::Unix->catpath( $dest_volume, $dest_directory, '' );
-
-    my ($source_volume, $source_directory, $source_file) =
-        File::Spec::Unix->splitpath( $source );
-    $source = File::Spec::Unix->catpath( $source_volume, $source_directory, '' );
-
-    my $rel_path = '';
-    if ($dest ne '') {
-       $rel_path = File::Spec::Unix->abs2rel( $dest, $source );
-    }
-
-    if ($rel_path ne '' && substr( $rel_path, -1 ) ne '/') {
-        $rel_path .= "/$dest_file";
-    } else {
-        $rel_path .= "$dest_file";
-    }
-
-    return $rel_path;
-}
 
 1;
