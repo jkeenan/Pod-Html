@@ -72,13 +72,7 @@ sub parse_command_line {
     $options{Title}     =         $opt_title      if defined $opt_title;
     $options{Verbose}   =         $opt_verbose    if defined $opt_verbose;
 
-    warn "Flushing directory caches\n"
-        if $opt_verbose && defined $opt_flush;
-    $options{Dircache} = "$options{Cachedir}/pod2htmd.tmp";
-    if (defined $opt_flush) {
-        1 while unlink($options{Dircache});
-    }
-    return %options;
+    return \%options;
 }
 
 sub usage {

@@ -3,22 +3,86 @@ use strict;
 use vars qw( $VERSION );
 $VERSION = 1.16;
 
-use Config;
-use Cwd;
+use Carp;
+#use Config;
+#use Cwd;
 use File::Basename;
 use File::Spec;
-use File::Spec::Unix;
-use Getopt::Long;
-use Pod::Simple::Search;
+#use File::Spec::Unix;
+#use Pod::Simple::Search;
 use lib ( './lib' );
-use Pod::Simple::XHTML::LocalPodLinks;
-use Pod::Html::Auxiliary qw(
-    parse_command_line
-    usage
-    unixify
-);
+#use Pod::Simple::XHTML::LocalPodLinks;
+#use Pod::Html::Auxiliary qw(
+#    parse_command_line
+#    usage
+#    unixify
+#);
 use locale; # make \w work right in non-ASCII lands
 
+sub new {
+    my $class = shift;
+    my %args = ();
+    $args{Curdir} = File::Spec->curdir;
+    $args{Cachedir} = ".";   # The directory to which directory caches
+                                #   will be written.
+    $args{Dircache} = "pod2htmd.tmp";
+    $args{Htmlroot} = "/";   # http-server base directory from which all
+                                #   relative paths in $podpath stem.
+    $args{Htmldir} = "";     # The directory to which the html pages
+                                #   will (eventually) be written.
+    $args{Htmlfile} = "";    # write to stdout by default
+    $args{Htmlfileurl} = ""; # The url that other files would use to
+                                # refer to this file.  This is only used
+                                # to make relative urls that point to
+                                # other files.
+
+    $args{Poderrors} = 1;
+    $args{Podfile} = "";              # read from stdin by default
+    $args{Podpath} = [];
+    $args{Podroot} = $args{Curdir};         # filesystem base directory from which all
+                                #   relative paths in $podpath stem.
+    $args{Css} = '';                  # Cascading style sheet
+    $args{Recurse} = 1;               # recurse on subdirectories in $podpath.
+    $args{Quiet} = 0;                 # not quiet by default
+    $args{Verbose} = 0;               # not verbose by default
+    $args{Doindex} = 1;               # non-zero if we should generate an index
+    $args{Backlink} = 0;              # no backlinks added by default
+    $args{Header} = 0;                # produce block header/footer
+    $args{Title} = '';                # title to give the pod(s)
+    $args{Saved_Cache_Key} = undef;
+    return bless \%args, $class;
+}
+
+sub process_options {
+    my ($self, $options) = @_;
+    if (defined $options) {
+        croak "process_options() needs hashref" unless ref($options) eq 'HASH';
+    }
+    else {
+        $options = {};
+    }
+    warn "Flushing directory caches\n"
+        if $options->{verbose} && defined $options->{flush};
+    $options->{Dircache} = "$options->{Cachedir}/pod2htmd.tmp";
+    if (defined $options->{flush}) {
+        1 while unlink($options->{Dircache});
+    }
+    while (my ($k,$v) = each %{$options}) {
+        $self->{$k} = $v;
+    };
+    return 1;
+}
+
+sub get {
+    my ($self, $element) = @_;
+    return unless defined $element;
+    return unless (exists $self->{$element} and defined $self->{$element});
+    return $self->{$element};
+}
+
+1;
+
+__END__
 =head1 NAME
 
 Pod::Html - module to convert pod files to HTML
