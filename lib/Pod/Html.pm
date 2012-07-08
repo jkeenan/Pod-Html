@@ -164,10 +164,12 @@ sub _save_page {
     my ($self, $modspec, $modname) = @_;
 
     # Remove Podroot from path
-    $modspec = $self->{Podroot} eq File::Spec->curdir
-               ? File::Spec->abs2rel($modspec)
-               : File::Spec->abs2rel($modspec,
-                                     File::Spec->canonpath($self->{Podroot}));
+    $modspec = ($self->{Podroot} eq File::Spec->curdir)
+        ? File::Spec->abs2rel($modspec)
+        : File::Spec->abs2rel(
+            $modspec,
+            File::Spec->canonpath($self->{Podroot})
+          );
 
     # Convert path to unix style path
     $modspec = unixify($modspec);
