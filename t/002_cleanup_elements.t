@@ -23,3 +23,32 @@ ok($rv, "process_options() returned true value");
     like($warning, qr/Flushing directory caches/,
         "process_options(): got expected warning with 'flush' and 'verbose'");
 }
+
+$p2h = Pod::Html->new();
+ok($p2h, 'Pod::Html returned true value');
+$rv = $p2h->process_options( {
+    flush => 1, 
+ } );
+ok($rv, "process_options() returned true value");
+{
+    my $warning = '';
+    local $SIG{__WARN__} = sub { $warning = $_[0]; };
+    $p2h->cleanup_elements();
+    unlike($warning, qr/Flushing directory caches/,
+        "process_options(): as expected, no warning with only 'flush'");
+}
+
+$p2h = Pod::Html->new();
+ok($p2h, 'Pod::Html returned true value');
+$rv = $p2h->process_options( {
+    verbose => 1, 
+ } );
+ok($rv, "process_options() returned true value");
+{
+    my $warning = '';
+    local $SIG{__WARN__} = sub { $warning = $_[0]; };
+    $p2h->cleanup_elements();
+    unlike($warning, qr/Flushing directory caches/,
+        "process_options(): as expected, no warning with only 'verbose'");
+}
+
