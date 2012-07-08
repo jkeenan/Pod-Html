@@ -5,7 +5,7 @@ $VERSION = 1.16;
 
 use Carp;
 #use Config;
-#use Cwd;
+use Cwd;
 use File::Basename;
 use File::Spec;
 #use File::Spec::Unix;
@@ -19,6 +19,8 @@ use Pod::Html::Auxiliary qw(
 #    parse_command_line
 #    usage
 use locale; # make \w work right in non-ASCII lands
+
+our %Pages;
 
 sub new {
     my $class = shift;
@@ -106,42 +108,43 @@ sub cleanup_elements {
     return 1;
 }
 
+sub generate_pages_cache {
 #    unless (get_cache($globals{Dircache}, $globals{Podpath},
 #            $globals{Podroot}, $globals{Recurse}, $globals{Verbose})) {
-#        # generate %Pages
-#        my $pwd = getcwd();
-#        chdir($globals{Podroot}) || 
-#            die "$0: error changing to directory $globals{Podroot}: $!\n";
-#
-#        # find all pod modules/pages in podpath, store in %Pages
-#        # - callback used to remove Podroot and extension from each file
-#        # - laborious to allow '.' in dirnames (e.g., /usr/share/perl/5.14.1)
-#        Pod::Simple::Search->new->inc(0)->verbose($globals{Verbose})->laborious(1)
-#            ->callback(\&_save_page)->recurse($globals{Recurse})->survey(@{$globals{Podpath}});
-#
-#        chdir($pwd) || die "$0: error changing to directory $pwd: $!\n";
-#
-#        # cache the directory list for later use
-#        warn "caching directories for later use\n" if $globals{Verbose};
-#        open my $CACHE, '>', $globals{Dircache}
-#            or die "$0: error open $globals{Dircache} for writing: $!\n";
-#
-#        print $CACHE join(":", @{$globals{Podpath}}) . "\n$globals{Podroot}\n";
-#        my $_updirs_only = ($globals{Podroot} =~ /\.\./) && !($globals{Podroot} =~ /[^\.\\\/]/);
-#        foreach my $key (keys %Pages) {
-#            if($_updirs_only) {
-#              my $_dirlevel = $globals{Podroot};
-#              while($_dirlevel =~ /\.\./) {
-#                $_dirlevel =~ s/\.\.//;
-#                # Assume $Pages{$key} has '/' separators (html dir separators).
-#                $Pages{$key} =~ s/^[\w\s\-\.]+\///;
-#              }
-#            }
-#            print $CACHE "$key $Pages{$key}\n";
-#        }
-#
-#        close $CACHE or die "error closing $globals{Dircache}: $!";
+        # generate %Pages
+        my $pwd = getcwd();
+        chdir($self->{Podroot}) || 
+            die "$0: error changing to directory $self->{Podroot}: $!\n";
+
+        # find all pod modules/pages in podpath, store in %Pages
+        # - callback used to remove Podroot and extension from each file
+        # - laborious to allow '.' in dirnames (e.g., /usr/share/perl/5.14.1)
+#        Pod::Simple::Search->new->inc(0)->verbose($self->{Verbose})->laborious(1) ->callback(\&_save_page)->recurse($self->{Recurse})->survey(@{$self->{Podpath}});
+
+        chdir($pwd) || die "$0: error changing to directory $pwd: $!\n";
+
+        # cache the directory list for later use
+        warn "caching directories for later use\n" if $self->{Verbose};
+        open my $CACHE, '>', $self->{Dircache}
+            or die "$0: error open $self->{Dircache} for writing: $!\n";
+
+        print $CACHE join(":", @{$self->{Podpath}}) . "\n$self->{Podroot}\n";
+        my $_updirs_only = ($self->{Podroot} =~ /\.\./) && !($self->{Podroot} =~ /[^\.\\\/]/);
+        foreach my $key (keys %Pages) {
+            if($_updirs_only) {
+              my $_dirlevel = $self->{Podroot};
+              while($_dirlevel =~ /\.\./) {
+                $_dirlevel =~ s/\.\.//;
+                # Assume $Pages{$key} has '/' separators (html dir separators).
+                $Pages{$key} =~ s/^[\w\s\-\.]+\///;
+              }
+            }
+            print $CACHE "$key $Pages{$key}\n";
+        }
+
+        close $CACHE or die "error closing $self->{Dircache}: $!";
 #    }
+}
 
 sub get {
     my ($self, $element) = @_;
