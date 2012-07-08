@@ -62,8 +62,8 @@ ok($rv, "process_options() returned true value");
     $p2h = Pod::Html->new();
     ok($p2h, 'Pod::Html returned true value');
     $rv = $p2h->process_options( {
-        Htmlroot => 1, 
-        Htmldir  => 1, 
+        Htmlroot => '/some/path', 
+        Htmldir  => '/some/other/path', 
      } );
     ok($rv, "process_options() returned true value");
     eval { $rv = $p2h->cleanup_elements(); };
@@ -76,12 +76,25 @@ ok($rv, "process_options() returned true value");
     $p2h = Pod::Html->new();
     ok($p2h, 'Pod::Html returned true value');
     $rv = $p2h->process_options( {
-        Htmlroot => 0, 
-        Htmldir  => 1, 
+        Htmlroot => '/', # Internally reassigned to empty string
+        Htmldir  => '/some/other/path', 
      } );
     ok($rv, "process_options() returned true value");
     eval { $rv = $p2h->cleanup_elements(); };
     ok(!$@, "Okay to have false Htmlroot and true Htmldir");
+}
+
+{
+    local $@;
+    $p2h = Pod::Html->new();
+    ok($p2h, 'Pod::Html returned true value');
+    $rv = $p2h->process_options( {
+        Htmlroot => '/some/path', 
+        Htmldir  => undef, 
+     } );
+    ok($rv, "process_options() returned true value");
+    eval { $rv = $p2h->cleanup_elements(); };
+    ok(!$@, "Okay to have defined Htmlroot and false Htmldir");
 }
 
 __END__

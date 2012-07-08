@@ -76,15 +76,15 @@ sub cleanup_elements {
     if (defined $self->{flush}) {
         1 while unlink($self->{Dircache});
     }
+    # prevent '//' in urls
+    $self->{Htmlroot} = "" if $self->{Htmlroot} eq "/";
+    $self->{Htmldir} =~ s#/\z##;
     # Per documentation, Htmlroot and Htmldir cannot both be set to true
     # values.  Die if that is the case.
     my $msg = "htmlroot and htmldir cannot both be set to true values\n";
     $msg .= "Choose one of the other";
     croak $msg if ($self->{Htmlroot} and $self->{Htmldir});
 
-    # prevent '//' in urls
-    $self->{Htmlroot} = "" if $self->{Htmlroot} eq "/";
-    $self->{Htmldir} =~ s#/\z##;
 
     if (  $self->{Htmlroot} eq ''
        && $self->{Htmldir} ne ''
