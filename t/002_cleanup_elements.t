@@ -2,6 +2,7 @@
 use strict;
 use warnings;
 use Pod::Html;
+use Pod::Html::Auxiliary qw( unixify );
 use Test::More qw(no_plan); # tests => 2;
 use Data::Dumper;$Data::Dumper::Indent=1;
 
@@ -95,6 +96,25 @@ ok($rv, "process_options() returned true value");
     ok($rv, "process_options() returned true value");
     eval { $rv = $p2h->cleanup_elements(); };
     ok(!$@, "Okay to have defined Htmlroot and false Htmldir");
+}
+
+{
+    local $@;
+    $p2h = Pod::Html->new();
+    ok($p2h, 'Pod::Html returned true value');
+    $rv = $p2h->process_options( {
+        Htmlroot => '/', # Internally reassigned to empty string
+        Htmldir  => '/some/other/spring', 
+        Htmlfile => '/some/other/spring',
+     } );
+    ok($rv, "process_options() returned true value");
+    eval { $rv = $p2h->cleanup_elements(); };
+    ok(!$@, "Okay to have false Htmlroot and true Htmldir");
+    is(
+        $p2h->get('Htmlfileurl'),
+        unixify($p2h->get('Htmlfile')),
+        "Got expected value for Htmlfileurl"
+    );
 }
 
 __END__

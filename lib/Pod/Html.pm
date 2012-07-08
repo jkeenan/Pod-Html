@@ -14,10 +14,10 @@ use lib ( './lib' );
 #use Pod::Simple::XHTML::LocalPodLinks;
 use Pod::Html::Auxiliary qw(
     html_escape
+    unixify
 );
 #    parse_command_line
 #    usage
-#    unixify
 use locale; # make \w work right in non-ASCII lands
 
 sub new {
