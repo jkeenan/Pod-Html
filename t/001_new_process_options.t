@@ -23,15 +23,3 @@ like($p2h->get('Dircache'), qr/pod2htmd\.tmp/,
         "process_options: got expected 'die' message for wrong argument type");
 }
 
-{
-    my $warning;
-    local $SIG{__WARN__} = sub { $warning = $_[0]; };
-    $p2h = Pod::Html->new();
-    $rv = $p2h->process_options( {
-        verbose => 1,
-        flush => 1, 
-     }  );
-    ok($rv, "process_options() returned true value");
-    like($warning, qr/Flushing directory caches/,
-        "process_options(): got expected warning with 'flush' and 'verbose'");
-}

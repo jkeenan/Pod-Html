@@ -62,12 +62,6 @@ sub process_options {
     else {
         $options = {};
     }
-    warn "Flushing directory caches\n"
-        if $options->{verbose} && defined $options->{flush};
-    $options->{Dircache} = "$options->{Cachedir}/pod2htmd.tmp";
-    if (defined $options->{flush}) {
-        1 while unlink($options->{Dircache});
-    }
     while (my ($k,$v) = each %{$options}) {
         $self->{$k} = $v;
     };
@@ -76,6 +70,12 @@ sub process_options {
 
 sub cleanup_elements {
     my $self = shift;
+    warn "Flushing directory caches\n"
+        if $self->{verbose} && defined $self->{flush};
+    $self->{Dircache} = "$self->{Cachedir}/pod2htmd.tmp";
+    if (defined $self->{flush}) {
+        1 while unlink($self->{Dircache});
+    }
     # prevent '//' in urls
     $self->{Htmlroot} = "" if $self->{Htmlroot} eq "/";
     $self->{Htmldir} =~ s#/\z##;
