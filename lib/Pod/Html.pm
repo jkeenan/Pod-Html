@@ -12,11 +12,12 @@ use File::Spec;
 #use Pod::Simple::Search;
 use lib ( './lib' );
 #use Pod::Simple::XHTML::LocalPodLinks;
-#use Pod::Html::Auxiliary qw(
+use Pod::Html::Auxiliary qw(
+    html_escape
+);
 #    parse_command_line
 #    usage
 #    unixify
-#);
 use locale; # make \w work right in non-ASCII lands
 
 sub new {
@@ -70,6 +71,32 @@ sub process_options {
     while (my ($k,$v) = each %{$options}) {
         $self->{$k} = $v;
     };
+    return 1;
+}
+
+sub cleanup_elements {
+    my $self = shift;
+    # prevent '//' in urls
+    $self->{Htmlroot} = "" if $self->{Htmlroot} eq "/";
+    $self->{Htmldir} =~ s#/\z##;
+
+    if (  $self->{Htmlroot} eq ''
+       && $self->{Htmldir} ne ''
+       && substr( $self->{Htmlfile}, 0, length( $self->{Htmldir} ) ) eq $self->{Htmldir}
+       ) {
+        # Set the 'base' url for this file, so that we can use it
+        # as the location from which to calculate relative links
+        # to other files. If this is '', then absolute links will
+        # be used throughout.
+        # $self->{Htmlfileurl} =
+        #   "$self->{Htmldir}/" . substr( $self->{Htmlfile}, length( $self->{Htmldir} ) + 1);
+        # Is the above not just "$self->{Htmlfileurl} = $self->{Htmlfile}"?
+        $self->{Htmlfileurl} = unixify($self->{Htmlfile});
+    }
+
+    # XXX: implement default title generator in pod::simple::xhtml
+    # copy the way the old Pod::Html did it
+    $self->{Title} = html_escape($self->{Title});
     return 1;
 }
 
@@ -548,19 +575,6 @@ sub load_cache {
 }
 
 
-#
-# html_escape: make text safe for HTML
-#
-sub html_escape {
-    my $rest = $_[0];
-    $rest   =~ s/&/&amp;/g;
-    $rest   =~ s/</&lt;/g;
-    $rest   =~ s/>/&gt;/g;
-    $rest   =~ s/"/&quot;/g;
-    # &apos; is only in XHTML, not HTML4.  Be conservative
-    #$rest   =~ s/'/&apos;/g;
-    return $rest;
-}
 
 #
 # htmlify - converts a pod section specification to a suitable section

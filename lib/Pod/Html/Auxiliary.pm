@@ -10,6 +10,7 @@ $VERSION = 1.16;
     usage
     unixify
     relativize_url
+    html_escape
 );
 
 #use Carp;
@@ -173,4 +174,18 @@ sub relativize_url {
 
     return $rel_path;
 }
+#
+# html_escape: make text safe for HTML
+#
+sub html_escape {
+    my $rest = $_[0];
+    $rest   =~ s/&/&amp;/g;
+    $rest   =~ s/</&lt;/g;
+    $rest   =~ s/>/&gt;/g;
+    $rest   =~ s/"/&quot;/g;
+    # &apos; is only in XHTML, not HTML4.  Be conservative
+    #$rest   =~ s/'/&apos;/g;
+    return $rest;
+}
+
 1;

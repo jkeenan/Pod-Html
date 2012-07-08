@@ -129,9 +129,8 @@ use Pod::Html::Auxiliary qw(
 use Data::Dumper;$Data::Dumper::Indent=1;
 
 my $options = parse_command_line();
-print Dumper $options;
 
 my $p2h = Pod::Html->new();
-print Dumper $p2h;
 $p2h->process_options( $options );
+$p2h->cleanup_elements();
 print Dumper $p2h;
