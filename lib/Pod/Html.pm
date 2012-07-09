@@ -155,10 +155,7 @@ sub generate_pages_cache {
         or die "$0: error open $self->{Dircache} for writing: $!\n";
 
     print $CACHE join(":", @{$self->{Podpath}}) . "\n$self->{Podroot}\n";
-#print STDERR "Podroot: $self->{Podroot}\n";
     my $_updirs_only = ($self->{Podroot} =~ /\.\./) && !($self->{Podroot} =~ /[^\.\\\/]/);
-#print STDERR "_updirs_only: $_updirs_only\n";
-#print STDERR "Pages: ", keys %{$self->{Pages}}, "\n";
     foreach my $key (keys %{$self->{Pages}}) {
         if($_updirs_only) {
           my $_dirlevel = $self->{Podroot};
