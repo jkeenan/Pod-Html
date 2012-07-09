@@ -34,7 +34,7 @@ is(-f $tcachefile, undef, "No cache file to start");
 # test podpath and podroot
 $options = {
     podfile => $infile,
-    htmlfile => $outfile,
+    outfile  => $outfile,
     podpath => "scooby:shaggy:fred:velma:daphne",
     podroot => $cwd,
 };
@@ -60,7 +60,7 @@ is($podroot, "$cwd", "podroot");
     my %expected_pages = ();
     $options = {
         podfile => $infile,
-        htmlfile => $outfile,
+        outfile  => $outfile,
         cachedir => 't',
         podpath => 't',
         htmldir => $cwd,
@@ -117,7 +117,7 @@ is(-f $tcachefile, undef, "No cache file to start");
 {
     $options = {
         podfile => $infile,
-        htmlfile => $outfile,
+        outfile  => $outfile,
         podpath => "scooby:shaggy:fred:velma:daphne",
         podroot => $cwd,
         verbose => 1,
@@ -154,7 +154,7 @@ is(-f $tcachefile, undef, "No cache file to start");
 
     $options = {
         podfile => $infile,
-        htmlfile => $outfile,
+        outfile  => $outfile,
         cachedir => 't',
         podpath => 't',
         htmldir => $cwd,
@@ -225,3 +225,33 @@ is(-f $tcachefile, undef, "No cache file to start");
 1 while unlink $tcachefile;
 is(-f $cachefile, undef, "No cache file to end");
 is(-f $tcachefile, undef, "No cache file to end");
+
+############################
+$options = {
+    podfile => $infile,
+    outfile  => $outfile,
+    podpath => "scooby:shaggy:fred:velma:daphne",
+    podroot => "..",
+};
+$p2h = Pod::Html->new();
+$p2h->process_options( $options );
+$p2h->cleanup_elements();
+$rv = $p2h->generate_pages_cache();
+ok(defined($rv),
+    "generate_pages_cache() returned defined value, indicating full run");
+is(-f $cachefile, 1, "Cache created");
+open($cache, '<', $cachefile) or die "Cannot open cache file: $!";
+chomp($podpath = <$cache>);
+chomp($podroot = <$cache>);
+close $cache;
+is($podpath, "scooby:shaggy:fred:velma:daphne", "podpath");
+is($podroot, "..", "podroot");
+
+# Cleanup
+1 while unlink $outfile;
+1 while unlink $cachefile;
+1 while unlink $tcachefile;
+is(-f $cachefile, undef, "No cache file to end");
+is(-f $tcachefile, undef, "No cache file to end");
+__END__
+
