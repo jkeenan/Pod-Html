@@ -119,13 +119,13 @@ This program is distributed under the Artistic License.
 =cut
 
 use strict;
-use warnings;
+#use warnings;
 use lib ( './lib' );
 use Pod::Html;
 use Pod::Html::Auxiliary qw(
     parse_command_line
-    usage
 );
+#    usage
 use Data::Dumper;$Data::Dumper::Indent=1;
 
 my $options = parse_command_line();
@@ -134,6 +134,7 @@ my $p2h = Pod::Html->new();
 $p2h->process_options( $options );
 #print Dumper $p2h;
 $p2h->cleanup_elements();
-print Dumper $p2h;
+#print Dumper $p2h;
 $p2h->generate_pages_cache();
 print Dumper { %Pod::Html::Pages };
+__END__

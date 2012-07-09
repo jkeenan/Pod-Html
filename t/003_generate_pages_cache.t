@@ -33,10 +33,10 @@ is(-f $tcachefile, undef, "No cache file to start");
 # I.
 # test podpath and podroot
 $options = {
-    Podfile => unixify($infile),
-    Htmlfile => unixify($outfile),
-    Podpath => [ split ':', "scooby:shaggy:fred:velma:daphne" ],
-    Podroot => $cwd,
+    podfile => $infile,
+    htmlfile => $outfile,
+    podpath => "scooby:shaggy:fred:velma:daphne",
+    podroot => $cwd,
 };
 $p2h = Pod::Html->new();
 $p2h->process_options( $options );
@@ -59,11 +59,11 @@ is($podroot, "$cwd", "podroot");
     my %pages = ();
     my %expected_pages = ();
     $options = {
-        Podfile => unixify($infile),
-        Htmlfile => unixify($outfile),
-        Cachedir => unixify('t'),
-        Podpath => [ split ':', "t" ],
-        Htmldir => unixify($cwd),
+        podfile => $infile,
+        htmlfile => $outfile,
+        cachedir => 't',
+        podpath => 't',
+        htmldir => $cwd,
     };
     $p2h = Pod::Html->new();
     $p2h->process_options( $options );
@@ -116,11 +116,11 @@ is(-f $tcachefile, undef, "No cache file to start");
 # test podpath and podroot
 {
     $options = {
-        Podfile => unixify($infile),
-        Htmlfile => unixify($outfile),
-        Podpath => [ split ':', "scooby:shaggy:fred:velma:daphne" ],
-        Podroot => $cwd,
-        Verbose => 1,
+        podfile => $infile,
+        htmlfile => $outfile,
+        podpath => "scooby:shaggy:fred:velma:daphne",
+        podroot => $cwd,
+        verbose => 1,
     };
     $p2h = Pod::Html->new();
     $p2h->process_options( $options );
@@ -151,16 +151,14 @@ is(-f $tcachefile, undef, "No cache file to start");
 {
     my %pages = ();
     my %expected_pages = ();
-#    my $warn;
-#    local $SIG{__WARN__} = sub { $warn .= $_[0] };
 
     $options = {
-        Podfile => unixify($infile),
-        Htmlfile => unixify($outfile),
-        Cachedir => unixify('t'),
-        Podpath => [ split ':', "t" ],
-        Htmldir => unixify($cwd),
-        Verbose => 1,
+        podfile => $infile,
+        htmlfile => $outfile,
+        cachedir => 't',
+        podpath => 't',
+        htmldir => $cwd,
+        verbose => 1,
     };
     $p2h = Pod::Html->new();
     $p2h->process_options( $options );

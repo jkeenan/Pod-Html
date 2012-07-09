@@ -54,14 +54,36 @@ sub new {
 }
 
 sub process_options {
-    my ($self, $options) = @_;
-    if (defined $options) {
-        croak "process_options() needs hashref" unless ref($options) eq 'HASH';
+    my ($self, $opts) = @_;
+    if (defined $opts) {
+        croak "process_options() needs hashref" unless ref($opts) eq 'HASH';
     }
     else {
-        $options = {};
+        $opts = {};
     }
-    while (my ($k,$v) = each %{$options}) {
+    # Declare intermediate hash to hold cleaned-up options
+    my %h = ();
+    @{$h{Podpath}}  = split(":", $opts->{podpath}) if defined $opts->{podpath};
+    warn "--libpods is no longer supported" if defined $opts->{libpods};
+
+    $h{Backlink}  =         $opts->{backlink}   if defined $opts->{backlink};
+    $h{Cachedir}  = unixify($opts->{cachedir})  if defined $opts->{cachedir};
+    $h{Css}       =         $opts->{css}        if defined $opts->{css};
+    $h{Header}    =         $opts->{header}     if defined $opts->{header};
+    $h{Htmldir}   = unixify($opts->{htmldir})   if defined $opts->{htmldir};
+    $h{Htmlroot}  = unixify($opts->{htmlroot})  if defined $opts->{htmlroot};
+    $h{Doindex}   =         $opts->{index}      if defined $opts->{index};
+    $h{Podfile}   = unixify($opts->{infile})    if defined $opts->{infile};
+    $h{Htmlfile}  = unixify($opts->{outfile})   if defined $opts->{outfile};
+    $h{Poderrors} =         $opts->{poderrors}  if defined $opts->{poderrors};
+    $h{Podroot}   = unixify($opts->{podroot})   if defined $opts->{podroot};
+    $h{Quiet}     =         $opts->{quiet}      if defined $opts->{quiet};
+    $h{Recurse}   =         $opts->{recurse}    if defined $opts->{recurse};
+    $h{Title}     =         $opts->{title}      if defined $opts->{title};
+    $h{Verbose}   =         $opts->{verbose}    if defined $opts->{verbose};
+    $h{flush}     =         $opts->{flush}      if defined $opts->{flush};
+
+    while (my ($k,$v) = each %h) {
         $self->{$k} = $v;
     };
     return 1;

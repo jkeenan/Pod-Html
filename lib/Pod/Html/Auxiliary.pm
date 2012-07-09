@@ -21,60 +21,37 @@ use Getopt::Long;
 use locale; # make \w work right in non-ASCII lands
 
 sub parse_command_line {
-    my %options = ();
-    my ($opt_backlink,$opt_cachedir,$opt_css,$opt_flush,$opt_header,
-        $opt_help,$opt_htmldir,$opt_htmlroot,$opt_index,$opt_infile,
-        $opt_outfile,$opt_poderrors,$opt_podpath,$opt_podroot,
-        $opt_quiet,$opt_recurse,$opt_title,$opt_verbose,$opt_libpods);
+    my %opts = ();
 
     unshift @ARGV, split ' ', $Config{pod2html} if $Config{pod2html};
-    my $result = GetOptions(
-                       'backlink!'  => \$opt_backlink,
-                       'cachedir=s' => \$opt_cachedir,
-                       'css=s'      => \$opt_css,
-                       'flush'      => \$opt_flush,
-                       'help'       => \$opt_help,
-                       'header!'    => \$opt_header,
-                       'htmldir=s'  => \$opt_htmldir,
-                       'htmlroot=s' => \$opt_htmlroot,
-                       'index!'     => \$opt_index,
-                       'infile=s'   => \$opt_infile,
-                       'libpods=s'  => \$opt_libpods, # deprecated
-                       'outfile=s'  => \$opt_outfile,
-                       'poderrors!' => \$opt_poderrors,
-                       'podpath=s'  => \$opt_podpath,
-                       'podroot=s'  => \$opt_podroot,
-                       'quiet!'     => \$opt_quiet,
-                       'recurse!'   => \$opt_recurse,
-                       'title=s'    => \$opt_title,
-                       'verbose!'   => \$opt_verbose,
+    my $result = GetOptions(\%opts,
+        'backlink!',
+        'cachedir=s',
+        'css=s',
+        'flush',
+        'help',
+        'header!',
+        'htmldir=s',
+        'htmlroot=s',
+        'index!',
+        'infile=s',
+        'libpods=s', # deprecated
+        'outfile=s',
+        'poderrors!',
+        'podpath=s',
+        'podroot=s',
+        'quiet!',
+        'recurse!',
+        'title=s',
+        'verbose!',
     );
     usage("-", "invalid parameters") if not $result;
 
-    usage("-") if defined $opt_help;    # see if the user asked for help
-    $opt_help = "";                     # just to make -w shut-up.
-
-    @{$options{Podpath}}  = split(":", $opt_podpath) if defined $opt_podpath;
-    warn "--libpods is no longer supported" if defined $opt_libpods;
-
-    $options{Backlink}  =         $opt_backlink   if defined $opt_backlink;
-    $options{Cachedir}  = unixify($opt_cachedir)  if defined $opt_cachedir;
-    $options{Css}       =         $opt_css        if defined $opt_css;
-    $options{Header}    =         $opt_header     if defined $opt_header;
-    $options{Htmldir}   = unixify($opt_htmldir)   if defined $opt_htmldir;
-    $options{Htmlroot}  = unixify($opt_htmlroot)  if defined $opt_htmlroot;
-    $options{Doindex}   =         $opt_index      if defined $opt_index;
-    $options{Podfile}   = unixify($opt_infile)    if defined $opt_infile;
-    $options{Htmlfile}  = unixify($opt_outfile)   if defined $opt_outfile;
-    $options{Poderrors} =         $opt_poderrors  if defined $opt_poderrors;
-    $options{Podroot}   = unixify($opt_podroot)   if defined $opt_podroot;
-    $options{Quiet}     =         $opt_quiet      if defined $opt_quiet;
-    $options{Recurse}   =         $opt_recurse    if defined $opt_recurse;
-    $options{Title}     =         $opt_title      if defined $opt_title;
-    $options{Verbose}   =         $opt_verbose    if defined $opt_verbose;
-
-    return \%options;
+    usage("-") if defined $opts{help};    # see if the user asked for help
+    $opts{help} = ''; # just to make -w shut-up.
+    return \%opts;
 }
+
 
 sub usage {
     my $podfile = shift;

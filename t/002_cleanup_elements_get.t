@@ -12,17 +12,17 @@ ok($p2h, 'Pod::Html returned true value');
 isa_ok($p2h, 'Pod::Html');
 
 $rv = $p2h->process_options( {
-    Verbose => 1,
+    verbose => 1,
     flush => 1, 
  } );
 ok($rv, "process_options() returned true value");
-
+#print STDERR Dumper $p2h;
 {
     my $warning = '';
     local $SIG{__WARN__} = sub { $warning = $_[0]; };
     $p2h->cleanup_elements();
     like($warning, qr/Flushing directory caches/,
-        "process_options(): got expected warning with 'flush' and 'Verbose'");
+        "process_options(): got expected warning with 'flush' and 'verbose'");
 }
 
 $p2h = Pod::Html->new();
@@ -47,7 +47,7 @@ ok(! defined $p2h->get('Saved_Cache_Key'),
 $p2h = Pod::Html->new();
 ok($p2h, 'Pod::Html returned true value');
 $rv = $p2h->process_options( {
-    Verbose => 1, 
+    verbose => 1, 
  } );
 ok($rv, "process_options() returned true value");
 {
@@ -55,7 +55,7 @@ ok($rv, "process_options() returned true value");
     local $SIG{__WARN__} = sub { $warning = $_[0]; };
     $p2h->cleanup_elements();
     unlike($warning, qr/Flushing directory caches/,
-        "process_options(): as expected, no warning with only 'Verbose'");
+        "process_options(): as expected, no warning with only 'verbose'");
 }
 
 {
@@ -63,8 +63,8 @@ ok($rv, "process_options() returned true value");
     $p2h = Pod::Html->new();
     ok($p2h, 'Pod::Html returned true value');
     $rv = $p2h->process_options( {
-        Htmlroot => '/some/path', 
-        Htmldir  => '/some/other/path', 
+        htmlroot => '/some/path', 
+        htmldir  => '/some/other/path', 
      } );
     ok($rv, "process_options() returned true value");
     eval { $rv = $p2h->cleanup_elements(); };
@@ -77,8 +77,8 @@ ok($rv, "process_options() returned true value");
     $p2h = Pod::Html->new();
     ok($p2h, 'Pod::Html returned true value');
     $rv = $p2h->process_options( {
-        Htmlroot => '/', # Internally reassigned to empty string
-        Htmldir  => '/some/other/path', 
+        htmlroot => '/', # Internally reassigned to empty string
+        htmldir  => '/some/other/path', 
      } );
     ok($rv, "process_options() returned true value");
     eval { $rv = $p2h->cleanup_elements(); };
@@ -90,8 +90,8 @@ ok($rv, "process_options() returned true value");
     $p2h = Pod::Html->new();
     ok($p2h, 'Pod::Html returned true value');
     $rv = $p2h->process_options( {
-        Htmlroot => '/some/path', 
-        Htmldir  => '', 
+        htmlroot => '/some/path', 
+        htmldir  => '', 
      } );
     ok($rv, "process_options() returned true value");
     eval { $rv = $p2h->cleanup_elements(); };
@@ -103,9 +103,9 @@ ok($rv, "process_options() returned true value");
     $p2h = Pod::Html->new();
     ok($p2h, 'Pod::Html returned true value');
     $rv = $p2h->process_options( {
-        Htmlroot => '/', # Internally reassigned to empty string
-        Htmldir  => '/some/other/spring', 
-        Htmlfile => '/some/other/spring',
+        htmlroot => '/', # Internally reassigned to empty string
+        htmldir  => '/some/other/spring', 
+        outfile  => '/some/other/spring',
      } );
     ok($rv, "process_options() returned true value");
     eval { $rv = $p2h->cleanup_elements(); };
