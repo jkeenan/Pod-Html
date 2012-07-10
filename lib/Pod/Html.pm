@@ -453,7 +453,7 @@ None.
 
 =item * Return Value
 
-Pod::Simple::XHTML::LocalPodLinks object.
+Parser object.
 
 =item * Comment
 
@@ -585,16 +585,17 @@ String holding output in HTML format.
 sub prepare_output {
     my ($self, $parser) = @_;
     my $input;
-    unless (@ARGV && $ARGV[0]) {
+#    unless (@ARGV && $ARGV[0]) {
         if ($self->{Podfile} and $self->{Podfile} ne '-') {
             $input = $self->{Podfile};
-        } else {
-            $input = '-'; # XXX: make a test case for this
         }
-    } else {
-        $self->{Podfile} = $ARGV[0];
-        $input = *ARGV;
-    }
+#        else {
+#            $input = '-'; # XXX: make a test case for this
+#        }
+#    } else {
+#        $self->{Podfile} = $ARGV[0];
+#        $input = *ARGV;
+#    }
 
     if ($self->{Verbose}) {
         my $subr = (caller(0))[3];

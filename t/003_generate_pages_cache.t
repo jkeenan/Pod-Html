@@ -34,7 +34,7 @@ is(-f $tcachefile, undef, "No cache file to start");
 # test podpath and podroot
 {
     $options = {
-        podfile => $infile,
+        infile => $infile,
         outfile  => $outfile,
         podpath => "scooby:shaggy:fred:velma:daphne",
         podroot => $cwd,
@@ -61,7 +61,7 @@ is(-f $tcachefile, undef, "No cache file to start");
     my %pages = ();
     my %expected_pages = ();
     $options = {
-        podfile => $infile,
+        infile => $infile,
         outfile  => $outfile,
         cachedir => 't',
         podpath => 't',
@@ -118,7 +118,7 @@ is(-f $tcachefile, undef, "No cache file to start");
 # test podpath and podroot
 {
     $options = {
-        podfile => $infile,
+        infile => $infile,
         outfile  => $outfile,
         podpath => "scooby:shaggy:fred:velma:daphne",
         podroot => $cwd,
@@ -155,7 +155,7 @@ is(-f $tcachefile, undef, "No cache file to start");
     my %expected_pages = ();
 
     $options = {
-        podfile => $infile,
+        infile => $infile,
         outfile  => $outfile,
         cachedir => 't',
         podpath => 't',
@@ -231,7 +231,7 @@ is(-f $tcachefile, undef, "No cache file to end");
 ############################
 {
     $options = {
-        podfile => $infile,
+        infile => $infile,
         outfile  => $outfile,
         podpath => "scooby:shaggy:fred:velma:daphne",
         podroot => "..",
