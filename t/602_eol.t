@@ -47,7 +47,19 @@ foreach my $eol ("\r", "\n", "\r\n") {
     close $pod or die $!;
     close $in or die $!;
 
-    pod2html("--title=eol", "--infile=$infile", "--outfile=$outfile[$i]");
+    my $p2h = Pod::Html->new();
+    $p2h->process_options( {
+        title => 'eol',
+        infile => $infile,
+        outfile => $outfile[$i],
+    } );
+    $p2h->cleanup_elements();
+    $p2h->generate_pages_cache();
+    
+    my $parser = $p2h->prepare_parser();
+    $p2h->prepare_html_components($parser);
+    my $output = $p2h->prepare_output($parser);
+    my $rv = $p2h->write_html($output);
     ++$i;
 }
 
