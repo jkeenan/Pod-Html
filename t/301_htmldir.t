@@ -12,26 +12,26 @@ my $cwd = cwd();
 my $data_pos = tell DATA; # to read <DATA> twice
 
 convert_n_test("htmldir2", "test --htmldir and --htmlroot 2a", 
- "--podpath=t",
- "--htmldir=t",
- "--quiet",
+    podpath => 't',
+    htmldir => 't',
+    quiet => 1,
 );
 
 seek DATA, $data_pos, 0; # to read <DATA> twice (expected output is the same)
 
 convert_n_test("htmldir2", "test --htmldir and --htmlroot 2b", 
- "--podpath=t",
- "--quiet",
+    podpath => 't',
+    quiet => 1,
 );
 
 seek DATA, $data_pos, 0; # to read <DATA> thrice (expected output is the same)
 
 # this test makes sure paths are absolute unless --htmldir is specified
 convert_n_test("htmldir2", "test --htmldir and --htmlroot 2c", 
- "--podpath=t",
- "--podroot=$cwd",
- "--norecurse", # testing --norecurse, too
- "--quiet",
+    podpath => 't',
+    podroot => $cwd,
+    recurse => 0,
+    quiet => 1,
 );
 
 __DATA__
