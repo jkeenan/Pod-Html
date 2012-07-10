@@ -12,21 +12,30 @@ use Test::More tests => 2;
 my $cwd = cwd();
 my $data_pos = tell DATA; # to read <DATA> twice
 
+# "--podpath=t",
+# "--htmldir=t",
+# "--outfile=". catfile('t', 'htmldir4.html'),
+# "--quiet",
 convert_n_test("htmldir4", "test --htmldir and --htmlroot 4a", 
- "--podpath=t",
- "--htmldir=t",
- "--outfile=". catfile('t', 'htmldir4.html'),
- "--quiet",
+    podpath => 't',
+    htmldir => 't',
+    outfile => catfile('t', 'htmldir4.html'),
+    quiet => 1,
 );
 
 seek DATA, $data_pos, 0; # to read <DATA> twice (expected output is the same)
 
+# "--podpath=t",
+# "--podroot=$cwd",
+# "--htmldir=". catdir($cwd, 't'),
+# "--norecurse",
+# "--quiet",
 convert_n_test("htmldir4", "test --htmldir and --htmlroot 4b", 
- "--podpath=t",
- "--podroot=$cwd",
- "--htmldir=". catdir($cwd, 't'),
- "--norecurse",
- "--quiet",
+    podpath => 't',
+    podroot => $cwd,
+    htmldir => catdir($cwd, 't'),
+    recurse => 0,
+    quiet => 1,
 );
 
 __DATA__
