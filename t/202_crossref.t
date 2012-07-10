@@ -21,10 +21,13 @@ SKIP: {
     my $cwd = cwd();
 
     convert_n_test("crossref", "cross references", 
-     "--podpath=t:testdir/test.lib",
-     "--podroot=$cwd",
-     "--htmlroot=$cwd",
-     "--quiet",
+        podpath => join(':' => (
+            't',
+            'testdir/test.lib',
+        ) ),
+        podroot => $cwd,
+        htmlroot => $cwd,
+        quiet => 1,
     );
 }
 
