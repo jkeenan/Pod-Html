@@ -8,7 +8,7 @@ use strict;
 use Test::More tests => 1;
 
 convert_n_test("podnoerr", "pod error section",
-	"--nopoderrors",
+    poderrors => 0,
 );
 
 __DATA__
