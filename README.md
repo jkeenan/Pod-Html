@@ -25,8 +25,8 @@ Synopsis
 Description
 ===========
 
-Pod::Html is the backend for the F<pod2html> utility.  You may continue to run
-the F<pod2html> utility as you have always done.
+Pod::Html is the backend for the `pod2html` utility.  You may continue to run
+the `pod2html` utility as you have always done.
 
     pod2html --help --htmlroot=<name> --infile=<name> --outfile=<name>
              --podpath=<name>:...:<name> --podroot=<name>
@@ -36,10 +36,10 @@ the F<pod2html> utility as you have always done.
 However, Pod::Html itself now has an object-oriented interface rather than
 one, all-inclusive function.  A Pod::Html object is constructed, then provided
 with a hash of options which may be the result of parsing a command-line via
-C<Pod::Html::Auxiliary::parse_command_line()>.  The data in the Pod::Html
+`Pod::Html::Auxiliary::parse_command_line()`.  The data in the Pod::Html
 object are fine-tuned.  Then, a parser is created based on Pod::Simple::XHTML.
 That parser is then used to parse the input and write the HTML output.  (While
 the input is typically a file containing text in Perl's Plain Old
-Documentation format (POD) and the output is typically a file in F<.html>
-format, the module will accept C<STDIN> and C<STDOUT>.)
+Documentation format (POD) and the output is typically a file in `.html`
+format, the module will accept `STDIN` and `STDOUT`.)
 
