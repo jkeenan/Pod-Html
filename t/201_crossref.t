@@ -21,10 +21,13 @@ SKIP: {
     my $cwd = Pod::Html::unixify(cwd());
 
     convert_n_test("crossref", "cross references",
-     "--podpath=t:testdir/test.lib",
-     "--podroot=$cwd",
-     "--htmldir=$cwd",
-     "--quiet",
+        podpath => join(':' => (
+            't',
+            'testdir/test.lib',
+        ) ),
+        podroot => $cwd,
+        htmldir => $cwd,
+        quiet => 1,
     );
 }
 

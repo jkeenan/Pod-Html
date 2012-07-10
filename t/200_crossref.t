@@ -21,11 +21,6 @@ SKIP: {
     my ($v, $d) = splitpath(cwd(), 1);
     my $relcwd = substr($d, length(File::Spec->rootdir()));
         
-#    convert_n_test("crossref", "cross references", 
-#     "--podpath=". catdir($relcwd, 't') . ":" . catdir($relcwd, 'testdir/test.lib'),
-#     "--podroot=$v". File::Spec->rootdir,
-#     "--quiet",
-#    );
     convert_n_test("crossref", "cross references", 
         podpath => join(':' => (
             catdir($relcwd, 't'),
