@@ -125,16 +125,19 @@ use Pod::Html;
 use Pod::Html::Auxiliary qw(
     parse_command_line
 );
-#    usage
 use Data::Dumper;$Data::Dumper::Indent=1;
 
 my $options = parse_command_line();
 
 my $p2h = Pod::Html->new();
 $p2h->process_options( $options );
-#print Dumper $p2h;
 $p2h->cleanup_elements();
-#print Dumper $p2h;
 $p2h->generate_pages_cache();
-print Dumper { %Pod::Html::Pages };
+
+my $parser = $p2h->prepare_parser();
+$p2h->prepare_html_components($parser);
+my $output = $p2h->prepare_output($parser);
+my $rv = $p2h->write_html($output);
+$rv ? exit(0) : exit(1);
+
 __END__

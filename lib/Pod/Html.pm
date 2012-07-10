@@ -4,20 +4,86 @@ use vars qw( $VERSION );
 $VERSION = 1.16;
 
 use Carp;
-#use Config;
+use Config;
 use Cwd;
 use File::Basename qw( fileparse );
 use File::Spec;
-#use File::Spec::Unix;
 use Pod::Simple::Search;
 use lib ( './lib' );
-#use Pod::Simple::XHTML::LocalPodLinks;
+use Pod::Simple::XHTML::LocalPodLinks;
 use Pod::Html::Auxiliary qw(
     html_escape
     unixify
 );
 use locale; # make \w work right in non-ASCII lands
 
+=head1 NAME
+
+Pod::Html - module to convert pod files to HTML
+
+=head1 SYNOPSIS
+
+    use Pod::Html;
+    use Pod::Html::Auxiliary qw( parse_command_line );
+    
+    $p2h = Pod::Html->new();
+    $p2h->process_options( parse_command_line() );
+    $p2h->cleanup_elements();
+    $p2h->generate_pages_cache();
+    
+    $parser = $p2h->prepare_parser();
+    $p2h->prepare_html_components($parser);
+
+    $output = $p2h->prepare_output($parser);
+    $rv = $p2h->write_html($output);
+
+=head1 DESCRIPTION
+
+Pod::Html is the backend for the F<pod2html> utility.  You may continue to run
+the F<pod2html> utility as you have always done.
+
+    pod2html --help --htmlroot=<name> --infile=<name> --outfile=<name>
+             --podpath=<name>:...:<name> --podroot=<name>
+             --recurse --norecurse --verbose
+             --index --noindex --title=<name>
+
+However, Pod::Html itself now has an object-oriented interface rather than
+one, all-inclusive function.  A Pod::Html object is constructed, then provided
+with a hash of options which may be the result of parsing a command-line via
+C<Pod::Html::Auxiliary::parse_command_line()>.  The data in the Pod::Html
+object are fine-tuned.  Then, a parser is created based on Pod::Simple::XHTML.
+That parser is then used to parse the input and write the HTML output.  (While
+the input is typically a file containing text in Perl's Plain Old
+Documentation format (POD) and the output is typically a file in F<.html>
+format, the module will accept C<STDIN> and C<STDOUT>.)
+
+=head1 METHODS
+
+=head2 C<new()>
+
+=over 4
+
+=item * Purpose
+
+Pod::Html constructor.
+
+=item * Arguments
+
+    $p2h = Pod::Html->new();
+
+None.
+
+=item * Return Value
+
+Pod::Html object.
+
+=item * Comment
+
+Sets default values for elements in the object.
+
+=back
+
+=cut
 
 sub new {
     my $class = shift;
@@ -52,6 +118,45 @@ sub new {
     $args{Saved_Cache_Key} = undef;
     return bless \%args, $class;
 }
+
+=head2 C<()>
+
+=over 4
+
+=item * Purpose
+
+Accept list of options from external source and have them override default
+values in object as needed.
+
+=item * Arguments
+
+    $p2h->process_options($opts);
+
+Hash reference. Example of C<$opts>:
+
+    $opts = {
+        podfile => 't/feature.pod',
+        outfile  => 't/feature.html',
+        podpath => 'scooby:shaggy:fred:velma:daphne',
+        podroot => '/path/to//current/directory',
+    };
+
+=item * Return Value
+
+True value upon success.
+
+=item * Comment
+
+Typically (as in F<bin/pod2html>), the hash reference provided as the argument
+will be the result of a call to C<Pod::Html::Auxiliary::parse_command_line()>,
+which is in turn a wrapper around C<Getopt::Long::GetOptions()>.
+
+Note: the C<libpods> option has been deprecated and a warning will be emitted
+if its use is attempted.
+
+=back
+
+=cut
 
 sub process_options {
     my ($self, $opts) = @_;
@@ -88,6 +193,39 @@ sub process_options {
     };
     return 1;
 }
+
+=head2 C<cleanup_elements()>
+
+=over 4
+
+=item * Purpose
+
+Makes corrections as needed to data in object.
+
+=item * Arguments
+
+    $p2h->cleanup_elements();
+
+None.
+
+=item * Return Value
+
+True value upon success.
+
+=item * Comment
+
+If C<flush> option is set, caches are cleared.
+
+The C<htmlroot> and C<htmldir> options are mutually exclusive.  If at this
+point both have true values, the program dies and the user is instructed to
+choose one or the other.
+
+If a value has been provided for the C<title> option, that value is
+HTML-escaped.
+
+=back
+
+=cut
 
 sub cleanup_elements {
     my $self = shift;
@@ -126,6 +264,28 @@ sub cleanup_elements {
     $self->{Title} = html_escape($self->{Title});
     return 1;
 }
+
+=head2 C<generate_pages_cache()>
+
+=over 4
+
+=item * Purpose
+
+=item * Arguments
+
+    $p2h->generate_pages_cache();
+
+None.
+
+=item * Return Value
+
+True value upon success.
+
+=item * Comment
+
+=back
+
+=cut
 
 sub generate_pages_cache {
     my $self = shift;
@@ -172,16 +332,10 @@ sub generate_pages_cache {
     return 1;
 }
 
-sub get {
-    my ($self, $element) = @_;
-    return unless defined $element;
-    return unless (exists $self->{$element} and defined $self->{$element});
-    return $self->{$element};
-}
-
+# Methods internal to generate_pages_cache()
 #
-# store POD files in %{$self->{Pages}}
-#
+# _save_page(): When a file containing POD is seen, cache its location inside
+# the object.
 sub _save_page {
     my ($self, $modspec, $modname) = @_;
 
@@ -200,7 +354,7 @@ sub _save_page {
     $self->{Pages}->{$modname} = $dir.$file;
 }
 
-
+# get_cache():  If a cache of POD files exists, use it.  Otherwise, start one.
 sub get_cache {
     my $self = shift;
 
@@ -229,6 +383,7 @@ sub get_cache {
     return $tests;
 }
 
+# cache_key(): Compose a key by which to search the cache file.
 sub cache_key {
     my $self = shift;
     return join('!' => (
@@ -240,9 +395,8 @@ sub cache_key {
     ) );
 }
 
-## load_cache - tries to find if the cache stored in $dircache is a valid
-##  cache of %{$self->{Pages}}.  if so, it loads them and returns a non-zero value.
-##
+# load_cache(): Tries to determine the validity of the cache.  If so, it loads
+# them and returns a non-zero value.
 sub load_cache {
     my $self = shift;
     my $tests = 0;
@@ -285,9 +439,271 @@ sub load_cache {
     return 1;
 }
 
-=head1 NAME
+=head2 C<prepare_parser()>
 
-Pod::Html - module to convert pod files to HTML
+=over 4
+
+=item * Purpose
+
+=item * Arguments
+
+    $parser = $p2h->prepare_parser();
+
+None.
+
+=item * Return Value
+
+Pod::Simple::XHTML::LocalPodLinks object.
+
+=item * Comment
+
+=back
+
+=cut
+
+sub prepare_parser {
+    my $self = shift;
+    # set options for the parser
+    my $parser = Pod::Simple::XHTML::LocalPodLinks->new();
+    $parser->codes_in_verbatim(0);
+    $parser->anchor_items(1); # the old Pod::Html always did
+    $parser->backlink($self->{Backlink}); # linkify =head1 directives
+    $parser->htmldir($self->{Htmldir});
+    $parser->htmlfileurl($self->{Htmlfileurl});
+    $parser->htmlroot($self->{Htmlroot});
+    $parser->index($self->{Doindex});
+    $parser->no_errata_section(!$self->{Poderrors}); # note the inverse
+    $parser->pages($self->{Pages});
+    $parser->quiet($self->{Quiet});
+    $parser->verbose($self->{Verbose});
+    return $parser;
+}
+
+=head2 C<()>
+
+=over 4
+
+=item * Purpose
+
+Composes parts of HTML such as header and footer.
+
+=item * Arguments
+
+    $p2h->prepare_html_components($parser);
+
+Parser object which is return value of C<prepare_parser()>.
+
+=item * Return Value
+
+True value upon success.
+
+=item * Comment
+
+Internally modifies parser object.
+
+=back
+
+=cut
+
+sub prepare_html_components {
+    my ($self, $parser ) = @_;
+    $parser->output_string(\my $output); # written to file later
+    # We need to add this ourselves because we use our own header, not
+    # ::XHTML's header. We need to set $parser->backlink to linkify
+    # the =head1 directives
+    my $bodyid = $self->{Backlink} ? ' id="_podtop_"' : '';
+
+    my $csslink = '';
+    my $bodystyle = ' style="background-color: white"';
+    my $tdstyle = ' style="background-color: #cccccc"';
+
+    if ($self->{Css}) {
+        $csslink = qq(\n<link rel="stylesheet" href="$self->{Css}" type="text/css" />);
+        $csslink =~ s,\\,/,g;
+        $csslink =~ s,(/.):,$1|,;
+        $bodystyle = '';
+        $tdstyle= '';
+    }
+
+    # header/footer block
+    my $block = $self->{Header} ? <<END_OF_BLOCK : '';
+<table border="0" width="100%" cellspacing="0" cellpadding="3">
+<tr><td class="_podblock_"$tdstyle valign="middle">
+<big><strong><span class="_podblock_">&nbsp;$self->{Title}</span></strong></big>
+</td></tr>
+</table>
+END_OF_BLOCK
+
+    # create own header/footer because of --header
+    $parser->html_header(<<"HTMLHEAD");
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>$self->{Title}</title>$csslink
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:$Config{perladmin}" />
+</head>
+
+<body$bodyid$bodystyle>
+$block
+HTMLHEAD
+
+    $parser->html_footer(<<"HTMLFOOT");
+$block
+</body>
+
+</html>
+HTMLFOOT
+    return 1;
+}
+
+=head2 C<prepare_output($parser)>
+
+=over 4
+
+=item * Purpose
+
+Compose HTML output.
+
+=item * Arguments
+
+    $output = $p2h->prepare_output($parser);
+
+Parser object.
+
+=item * Return Value
+
+String holding output in HTML format.
+
+=item * Comment
+
+=back
+
+=cut
+
+sub prepare_output {
+    my ($self, $parser) = @_;
+    my $input;
+    unless (@ARGV && $ARGV[0]) {
+        if ($self->{Podfile} and $self->{Podfile} ne '-') {
+            $input = $self->{Podfile};
+        } else {
+            $input = '-'; # XXX: make a test case for this
+        }
+    } else {
+        $self->{Podfile} = $ARGV[0];
+        $input = *ARGV;
+    }
+
+    if ($self->{Verbose}) {
+        my $subr = (caller(0))[3];
+        warn "$subr: Converting input file $self->{Podfile}\n";
+    }
+    $parser->output_string(\my $output); # written to file later
+    $parser->parse_file($input);
+    return $output;
+}
+
+=head2 C<write_html()>
+
+=over 4
+
+=item * Purpose
+
+Final output of HTML to file (or C<STDOUT>).
+
+=item * Arguments
+
+    $rv = $p2h->write_html($output);
+
+String which is return value of C<prepare_output()>.
+
+=item * Return Value
+
+True value upon success.  This indicates overall success of Pod::Html.
+
+=item * Comment
+
+=back
+
+=cut
+
+sub write_html {
+    my ($self, $output) = @_;
+
+    # Write output to file
+    my $FHOUT;
+    if ($self->{Htmlfile} and $self->{Htmlfile} ne '-') {
+        open $FHOUT, ">", $self->{Htmlfile}
+            or die "$0: cannot open $self->{Htmlfile} file for output: $!\n";
+        binmode $FHOUT, ":utf8";
+        print $FHOUT $output;
+        close $FHOUT or die "Failed to close $self->{Htmlfile}: $!";
+        chmod 0644, $self->{Htmlfile};
+    }
+    else {
+        open $FHOUT, ">-";
+        binmode $FHOUT, ":utf8";
+        print $FHOUT $output;
+        close $FHOUT or die "Failed to close handle to STDOUT: $!";
+    }
+    return 1;
+}
+
+=head2 C<get()>
+
+=over 4
+
+=item * Purpose
+
+Access current value of an element in the Pod::Html object.
+
+=item * Arguments
+
+    my $ucachefile = $p2h->get('Dircache');
+
+String holding name of element in object.
+
+=item * Return Value
+
+String holding value of element in object if a value is provided and if that
+value is defined.  Otherwise, return value is undefined.
+
+=item * Comment
+
+Useful in testing of Pod::Html, but not needed in production programs.
+
+=back
+
+=cut
+
+sub get {
+    my ($self, $element) = @_;
+    return unless defined $element;
+    return unless (exists $self->{$element} and defined $self->{$element});
+    return $self->{$element};
+}
+
+=head1 ENVIRONMENT
+
+Uses C<$Config{pod2html}> to setup default options.
+
+=head1 AUTHORS
+
+Original version by Tom Christiansen, E<lt>tchrist@perl.comE<gt>.
+
+Marc Green, E<lt>marcgreen@cpan.orgE<gt>. 
+
+James E Keenan, E<lt>jkeenan@cpan.orgE<gt>.
+
+=head1 SEE ALSO
+
+L<perlpod>, L<pod2html>, L<Pod::Html::Auxiliary>.
+
+=head1 COPYRIGHT
+
+This program is distributed under the Artistic License.
 
 =cut
 
