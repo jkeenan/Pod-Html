@@ -22,8 +22,6 @@ SKIP: {
     my ($v, $d) = splitpath($cwd, 1);
     my $relcwd = substr($d, length(File::Spec->rootdir()));
 
-    TODO: {
-        local $TODO = "tests with htmldir badly behaved under 'prove'";
     my $data_pos = tell DATA; # to read <DATA> twice
 
     convert_n_test("htmldir3", "test --htmldir and --htmlroot 3a", 
@@ -35,6 +33,8 @@ SKIP: {
 
     seek DATA, $data_pos, 0; # to read <DATA> twice (expected output is the same)
 
+    TODO: {
+        local $TODO = "tests with htmldir badly behaved under 'prove'";
     convert_n_test("htmldir3", "test --htmldir and --htmlroot 3b", 
         podpath => catdir($relcwd, 't'),
         podroot => $v . File::Spec->rootdir,
