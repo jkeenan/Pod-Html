@@ -8,32 +8,46 @@ BEGIN {
 use strict;
 use Cwd;
 use Test::More tests => 3;
+use IO::CaptureOutput qw( capture );
 
 my $cwd = cwd();
 
-my $warn;
-$SIG{__WARN__} = sub { $warn .= $_[0] };
+# "--backlink",
+# "--header",
+# "--podpath=.",
+# "--podroot=$cwd",
+# "--norecurse",
+# "--verbose",
+# "--quiet",
+{
+    my ($stdout, $stderr);
+    capture(
+        sub {
+            convert_n_test("feature2", "misc pod-html features 2", 
+                backlink => 1,
+                header => 1,
+                podpath => '.',
+                podroot => $cwd,
+                recurse => 0,
+                verbose => 1,
+                quiet => 1,
+            );
+        },
+        \$stdout,
+        \$stderr,
+    );
 
-convert_n_test("feature2", "misc pod-html features 2", 
- "--backlink",
- "--header",
- "--podpath=.",
- "--podroot=$cwd",
- "--norecurse",
- "--verbose",
- "--quiet",
- );
-
-like(
-    $warn,
-    qr/caching directories for later use/s,
-    "misc pod-html --verbose warnings: caching directories",
-);
-like(
-    $warn,
-    qr/Converting input file/,
-    "misc pod-html --verbose warnings: Converting input file",
-);
+    like(
+        $stderr,
+        qr/caching directories for later use/s,
+        "misc pod-html --verbose warnings: caching directories",
+    );
+    like(
+        $stderr,
+        qr/Converting input file/,
+        "misc pod-html --verbose warnings: Converting input file",
+    );
+}
 
 __DATA__
 <?xml version="1.0" ?>

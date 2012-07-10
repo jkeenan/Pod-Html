@@ -16,21 +16,21 @@ my $cwd = cwd();
     my ($stdout, $stderr);
     capture(
         sub {
-convert_n_test("feature", "misc pod-html features", 
-    backlink => 1,
-    css => 'style.css',
-    header => 1, # no styling b/c of --ccs
-    htmldir => catdir($cwd, 't'),
-    index => 0,
-    podpath => 't',
-    podroot => $cwd,
-    title => 'a title',
-    quiet => 1,
-    libpods => join(':' => qw(
-        perlguts
-        perlootut
-    ) ),
-);
+            convert_n_test("feature", "misc pod-html features", 
+                backlink => 1,
+                css => 'style.css',
+                header => 1, # no styling b/c of --ccs
+                htmldir => catdir($cwd, 't'),
+                index => 0,
+                podpath => 't',
+                podroot => $cwd,
+                title => 'a title',
+                quiet => 1,
+                libpods => join(':' => qw(
+                    perlguts
+                    perlootut
+                ) ),
+            );
         },
         \$stdout,
         \$stderr,
