@@ -5,7 +5,19 @@ use Config;
 use Test::More tests => 1;
 
 my $out = $$ . '.html';
-Pod::Html::pod2html("--infile=$0", "--outfile=$out");
+
+my $p2h = Pod::Html->new();
+$p2h->process_options( {
+    infile => $0,
+    outfile => $out,
+} );
+$p2h->cleanup_elements();
+$p2h->generate_pages_cache();
+
+my $parser = $p2h->prepare_parser();
+$p2h->prepare_html_components($parser);
+my $output = $p2h->prepare_output($parser);
+my $rv = $p2h->write_html($output);
 
 my $admin = $Config{'perladmin'};
 
