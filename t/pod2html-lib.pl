@@ -39,15 +39,22 @@ sub convert_n_test {
     my $infile   = catpath $vol, $new_dir, "$podfile.pod";
     my $outfile  = catpath $vol, $new_dir, "$podfile.html";
 
-    # To add/modify args to p2h, use @p2h_args
-    Pod::Html::pod2html(
-        "--infile=$infile",
-        "--outfile=$outfile",
-        "--podpath=t",
-        "--htmlroot=/",
-        "--podroot=$cwd",
+    my $p2h = Pod::Html->new();
+    $p2h->process_options( {
+        infile => $infile,
+        outfile => $outfile,
+        podpath => 't',
+        htmlroot => '/',
+        podroot => $cwd,
         @p2h_args,
-    );
+    } );
+    $p2h->cleanup_elements();
+    $p2h->generate_pages_cache();
+    
+    my $parser = $p2h->prepare_parser();
+    $p2h->prepare_html_components($parser);
+    my $output = $p2h->prepare_output($parser);
+    my $rv = $p2h->write_html($output);
 
     my ($expect, $result);
     {
