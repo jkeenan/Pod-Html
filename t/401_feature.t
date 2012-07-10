@@ -7,22 +7,38 @@ BEGIN {
 use strict;
 use Cwd;
 use File::Spec::Functions;
-use Test::More tests => 1;
+use Test::More tests => 2;
+use IO::CaptureOutput qw( capture );
 
 my $cwd = cwd();
 
+{
+    my ($stdout, $stderr);
+    capture(
+        sub {
 convert_n_test("feature", "misc pod-html features", 
- "--backlink",
- "--css=style.css",
- "--header", # no styling b/c of --ccs
- "--htmldir=". catdir($cwd, 't'),
- "--noindex",
- "--podpath=t",
- "--podroot=$cwd",
- "--title=a title",
- "--quiet",
- "--libpods=perlguts:perlootut",
- );
+    backlink => 1,
+    css => 'style.css',
+    header => 1, # no styling b/c of --ccs
+    htmldir => catdir($cwd, 't'),
+    index => 0,
+    podpath => 't',
+    podroot => $cwd,
+    title => 'a title',
+    quiet => 1,
+    libpods => join(':' => qw(
+        perlguts
+        perlootut
+    ) ),
+);
+        },
+        \$stdout,
+        \$stderr,
+    );
+    like($stderr,
+        qr/--libpods is no longer supported/s,
+        "Got expected warning about libpods no longer supported");
+}
 
 __DATA__
 <?xml version="1.0" ?>
