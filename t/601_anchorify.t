@@ -1,6 +1,6 @@
 # -*- perl -*-
 use strict;
-use Pod::Html qw( anchorify );
+use Pod::Html::Auxiliary qw( anchorify );
 use Test::More tests => 1;
 
 my @filedata;

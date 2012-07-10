@@ -11,6 +11,8 @@ $VERSION = 1.16;
     unixify
     relativize_url
     html_escape
+    htmlify
+    anchorify
 );
 
 #use Carp;
@@ -163,6 +165,43 @@ sub html_escape {
     # &apos; is only in XHTML, not HTML4.  Be conservative
     #$rest   =~ s/'/&apos;/g;
     return $rest;
+}
+
+=head2 htmlify
+
+    htmlify($heading);
+
+Converts a pod section specification to a suitable section specification
+for HTML. Note that we keep spaces and special characters except
+C<", ?> (Netscape problem) and the hyphen (writer's problem...).
+
+=cut
+
+sub htmlify {
+    my( $heading) = @_;
+    $heading =~ s/(\s+)/ /g;
+    $heading =~ s/\s+\Z//;
+    $heading =~ s/\A\s+//;
+    # The hyphen is a disgrace to the English language.
+    # $heading =~ s/[-"?]//g;
+    $heading =~ s/["?]//g;
+    $heading = lc( $heading );
+    return $heading;
+}
+=head2 anchorify
+
+    anchorify(@heading);
+
+Similar to C<htmlify()>, but turns non-alphanumerics into underscores.  Note
+that C<anchorify()> is not exported by default.
+
+=cut
+
+sub anchorify {
+    my ($anchor) = @_;
+    $anchor = htmlify($anchor);
+    $anchor =~ s/\W/_/g;
+    return $anchor;
 }
 
 1;
