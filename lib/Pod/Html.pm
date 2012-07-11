@@ -314,7 +314,9 @@ sub generate_pages_cache {
     open my $CACHE, '>', $self->{Dircache}
         or die "$0: error open $self->{Dircache} for writing: $!\n";
 
-    print $CACHE join(":", @{$self->{Podpath}}) . "\n$self->{Podroot}\n";
+    my $cacheline = join(":", @{$self->{Podpath}}) . "\n$self->{Podroot}\n";
+    print STDERR "c: $cacheline";
+    print $CACHE $cacheline;
     my $_updirs_only = ($self->{Podroot} =~ /\.\./) && !($self->{Podroot} =~ /[^\.\\\/]/);
     foreach my $key (keys %{$self->{Pages}}) {
         if($_updirs_only) {
@@ -325,7 +327,9 @@ sub generate_pages_cache {
             $self->{Pages}->{$key} =~ s/^[\w\s\-\.]+\///;
           }
         }
-        print $CACHE "$key $self->{Pages}->{$key}\n";
+        my $keyline = "$key $self->{Pages}->{$key}\n";
+        print STDERR "k: $keyline";
+        print $CACHE $keyline;
     }
 
     close $CACHE or die "error closing $self->{Dircache}: $!";
@@ -338,7 +342,7 @@ sub generate_pages_cache {
 # the object.
 sub _save_page {
     my ($self, $modspec, $modname) = @_;
-
+print STDERR "_sp args: $modspec | $modname\n";
     # Remove Podroot from path
     $modspec = ($self->{Podroot} eq File::Spec->curdir)
         ? File::Spec->abs2rel($modspec)
@@ -351,7 +355,9 @@ sub _save_page {
     $modspec = unixify($modspec);
 
     my ($file, $dir) = fileparse($modspec, qr/\.[^.]*/); # strip .ext
-    $self->{Pages}->{$modname} = $dir.$file;
+    my $value = $dir.$file;
+print STDERR "_sp return: $modname | $value\n";
+    $self->{Pages}->{$modname} = $value;
 }
 
 # get_cache():  If a cache of POD files exists, use it.  Otherwise, start one.
