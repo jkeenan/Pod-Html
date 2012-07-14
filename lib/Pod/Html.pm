@@ -315,7 +315,7 @@ sub generate_pages_cache {
         or die "$0: error open $self->{Dircache} for writing: $!\n";
 
     my $cacheline = join(":", @{$self->{Podpath}}) . "\n$self->{Podroot}\n";
-    print STDERR "c: $cacheline";
+#    print STDERR "c: $cacheline";
     print $CACHE $cacheline;
     my $_updirs_only = ($self->{Podroot} =~ /\.\./) && !($self->{Podroot} =~ /[^\.\\\/]/);
     foreach my $key (keys %{$self->{Pages}}) {
@@ -328,7 +328,7 @@ sub generate_pages_cache {
           }
         }
         my $keyline = "$key $self->{Pages}->{$key}\n";
-        print STDERR "k: $keyline";
+#        print STDERR "k: $keyline";
         print $CACHE $keyline;
     }
 
@@ -342,7 +342,7 @@ sub generate_pages_cache {
 # the object.
 sub _save_page {
     my ($self, $modspec, $modname) = @_;
-print STDERR "_sp args: $modspec | $modname\n";
+#print STDERR "_sp args: $modspec | $modname\n";
     # Remove Podroot from path
     $modspec = ($self->{Podroot} eq File::Spec->curdir)
         ? File::Spec->abs2rel($modspec)
@@ -356,7 +356,7 @@ print STDERR "_sp args: $modspec | $modname\n";
 
     my ($file, $dir) = fileparse($modspec, qr/\.[^.]*/); # strip .ext
     my $value = $dir.$file;
-print STDERR "_sp return: $modname | $value\n";
+#print STDERR "_sp return: $modname | $value\n";
     $self->{Pages}->{$modname} = $value;
 }
 
