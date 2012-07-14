@@ -34,7 +34,9 @@ SKIP: {
     seek DATA, $data_pos, 0; # to read <DATA> twice (expected output is the same)
 
     TODO: {
-        local $TODO = "tests with htmldir badly behaved under 'prove'";
+        local $TODO = "RT #114126: Test spuriously PASSes due to position in
+        file\n";
+        $TODO .= "Does not pass if first test in a file";
     convert_n_test("htmldir3", "test --htmldir and --htmlroot 3b", 
         podpath => catdir($relcwd, 't'),
         podroot => $v . File::Spec->rootdir,
