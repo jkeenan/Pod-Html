@@ -24,6 +24,8 @@ SKIP: {
 
     my $data_pos = tell DATA; # to read <DATA> twice
 
+    TODO: {
+        local $TODO = 'RT filed';
     convert_n_test("htmldir3", "test --htmldir and --htmlroot 3b", 
      "--podpath=". catdir($relcwd, 't'),
      "--podroot=$v". File::Spec->rootdir,
@@ -31,6 +33,7 @@ SKIP: {
      "--outfile=t/htmldir3.html",
      "--quiet",
     );
+    }
 
     seek DATA, $data_pos, 0; # to read <DATA> twice (expected output is the same)
 
