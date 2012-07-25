@@ -483,6 +483,7 @@ sub splitpod {
 # installdir - takes care of converting the .pod and .pm files in the
 #  current directory to .html files and then installing those.
 #
+# $htmldir $verbose $htmlroot @podpath @ignore
 sub installdir {
     my($dir, $recurse, $podroot, $splitdirs, $ignore) = @_;
 
@@ -547,7 +548,7 @@ sub installdir {
 #
 # runpod2html - invokes pod2html to convert a .pod or .pm file to a .html
 #  file.
-#
+# $htmldir $podroot $verbose $htmlroot @podpath $recurse
 sub runpod2html {
     my($pod, $doindex) = @_;
     my($html, $i, $dir, @dirs);
