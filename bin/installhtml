@@ -227,7 +227,16 @@ foreach my $dir (@splithead) {
     (my $pod = $dir) =~ s,^.*/,,;
     $dir .= ".pod" unless $dir =~ /(\.pod|\.pm)$/;
     # let pod2html create the file
-    runpod2html($dir, 1);
+   my $rv = runpod2html( {
+     podfile         => $dir,
+     podroot         => $podroot,
+     podpath         => \@podpath,
+     doindex         => 1,
+     htmldir         => $htmldir,
+     htmlroot        => $htmlroot,
+     verbose         => $verbose,
+     recurse         => $recurse,
+   } );
 
     # now go through and truncate after the index
     $dir =~ /^(.*?)(\.pod|\.pm)?$/sm;
@@ -535,7 +544,16 @@ sub installdir {
             . "'$podroot/$pod.pm' exist, using pod\n";
             push(@ignore, "$pod.pm");
         }
-        runpod2html("$pod.pod", $doindex);
+        my $rv = runpod2html( {
+          podfile         => "$pod.pod",
+          podroot         => $podroot,
+          podpath         => \@podpath,
+          doindex         => $doindex,
+          htmldir         => $htmldir,
+          htmlroot        => $htmlroot,
+          verbose         => $verbose,
+          recurse         => $recurse,
+        } );
     }
 
     # install all the .pm files we found
@@ -544,25 +562,42 @@ sub installdir {
         next if $pm =~ m(/t/); # comes from a test file
         next if grep($_ eq "$pm.pm", @ignore);
     
-        runpod2html("$pm.pm", $doindex);
+        my $rv = runpod2html( {
+          podfile         => "$pm.pm",
+          podroot         => $podroot,
+          podpath         => \@podpath,
+          doindex         => $doindex,
+          htmldir         => $htmldir,
+          htmlroot        => $htmlroot,
+          verbose         => $verbose,
+          recurse         => $recurse,
+        } );
     }
 }
 
-
-#
 # runpod2html - invokes pod2html to convert a .pod or .pm file to a .html
 #  file.
-# $htmldir $podroot $verbose $htmlroot @podpath $recurse
+# $rv = runpod2html( {
+#   podfile         => $pod,
+#   podroot         => $podroot,
+#   podpath         => \@podpath,
+#   doindex         => $doindex,
+#   htmldir         => $htmldir,
+#   htmlroot        => $htmlroot,
+#   verbose         => $verbose,
+#   recurse         => $recurse,
+# } );
+#
 sub runpod2html {
-    my($pod, $doindex) = @_;
+    my $args = shift;
     my($html, $i, $dir, @dirs);
 
-    $html = $pod;
+    $html = $args->{podfile};
     $html =~ s/\.(pod|pm)$/.html/g;
 
     # make sure the destination directories exist
     @dirs = split("/", $html);
-    $dir  = "$htmldir/";
+    $dir  = "$args->{htmldir}/";
     for ($i = 0; $i < $#dirs; $i++) {
         if (! -d "$dir$dirs[$i]") {
             mkdir("$dir$dirs[$i]", 0755) ||
@@ -572,29 +607,19 @@ sub runpod2html {
     }
 
     # invoke pod2html
-    print "$podroot/$pod => $htmldir/$html\n" if $verbose;
-#    Pod::Html::pod2html(
-#        "--htmldir=$htmldir",
-#        "--htmlroot=$htmlroot",
-#        "--podpath=".join(":", @podpath),
-#        "--podroot=$podroot",
-#        "--header",
-#        ($doindex ? "--index" : "--noindex"),
-#        "--" . ($recurse ? "" : "no") . "recurse",
-#        "--infile=$podroot/$pod", "--outfile=$htmldir/$html"
-#    );
-
+    print "$args->{podroot}/$args->{podfile} => $args->{htmldir}/$html\n"
+        if $args->{verbose};
     my $p2h = Pod::Html->new();
     my $options = {
-        htmldir     => $htmldir,
-        htmlroot    => $htmlroot,
-        podpath     => join(":", @podpath),
-        podroot     => $podroot,
+        htmldir     => $args->{htmldir},
+        htmlroot    => $args->{htmlroot},
+        podpath     => join(":", @{$args->{podpath}}),
+        podroot     => $args->{podroot},
         header      => 1,
-        index       => ($doindex ? 1 : 0),
-        recurse     => ($recurse ? 1 : 0),
-        infile      => "$podroot/$pod",
-        outfile     => "$htmldir/$html",
+        index       => ($args->{doindex} ? 1 : 0),
+        recurse     => ($args->{recurse} ? 1 : 0),
+        infile      => "$args->{podroot}/$args->{podfile}",
+        outfile     => "$args->{htmldir}/$html",
     };
     $p2h->process_options( $options );
     $p2h->cleanup_elements();
@@ -605,5 +630,6 @@ sub runpod2html {
 
     my $output = $p2h->prepare_output($parser);
     my $rv = $p2h->write_html($output);
-    die "$0: error running $pod2html: $!\n" if $?;
+    die "$0: error running pod2html: $!\n" if $?;
+    return $rv;
 }
