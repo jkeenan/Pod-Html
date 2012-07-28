@@ -7,7 +7,10 @@ use Config;        # for config options in the makefile
 use File::Spec::Functions qw(rel2abs no_upwards);
 use Getopt::Long;    # for command-line parsing
 use Cwd;
-use Pod::Html 'anchorify';
+use Pod::Html;
+use Pod::Html::Auxiliary qw(
+    anchorify
+);
 
 =head1 NAME
 
@@ -570,15 +573,37 @@ sub runpod2html {
 
     # invoke pod2html
     print "$podroot/$pod => $htmldir/$html\n" if $verbose;
-    Pod::Html::pod2html(
-        "--htmldir=$htmldir",
-        "--htmlroot=$htmlroot",
-        "--podpath=".join(":", @podpath),
-        "--podroot=$podroot",
-        "--header",
-        ($doindex ? "--index" : "--noindex"),
-        "--" . ($recurse ? "" : "no") . "recurse",
-        "--infile=$podroot/$pod", "--outfile=$htmldir/$html"
-    );
+#    Pod::Html::pod2html(
+#        "--htmldir=$htmldir",
+#        "--htmlroot=$htmlroot",
+#        "--podpath=".join(":", @podpath),
+#        "--podroot=$podroot",
+#        "--header",
+#        ($doindex ? "--index" : "--noindex"),
+#        "--" . ($recurse ? "" : "no") . "recurse",
+#        "--infile=$podroot/$pod", "--outfile=$htmldir/$html"
+#    );
+
+    my $p2h = Pod::Html->new();
+    my $options = {
+        htmldir     => $htmldir,
+        htmlroot    => $htmlroot,
+        podpath     => join(":", @podpath),
+        podroot     => $podroot,
+        header      => 1,
+        index       => ($doindex ? 1 : 0),
+        recurse     => ($recurse ? 1 : 0),
+        infile      => "$podroot/$pod",
+        outfile     => "$htmldir/$html",
+    };
+    $p2h->process_options( $options );
+    $p2h->cleanup_elements();
+    $p2h->generate_pages_cache();
+    
+    my $parser = $p2h->prepare_parser();
+    $p2h->prepare_html_components($parser);
+
+    my $output = $p2h->prepare_output($parser);
+    my $rv = $p2h->write_html($output);
     die "$0: error running $pod2html: $!\n" if $?;
 }
