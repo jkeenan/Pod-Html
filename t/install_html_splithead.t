@@ -54,8 +54,10 @@ foreach my $dir (
     ok( -d $dir, "Got expected directory $dir for html");
 }
 foreach my $file (
+    "$expected_htmldir/split/splithead1.html",
     "$expected_htmldir/split/splithead1/feature_a.html",
     "$expected_htmldir/split/splithead1/feature_b.html",
+    "$expected_htmldir/split/splithead2.html",
     "$expected_htmldir/split/splithead2/feature_c.html",
     "$expected_htmldir/split/splithead2/feature_d.html",
  ) {
