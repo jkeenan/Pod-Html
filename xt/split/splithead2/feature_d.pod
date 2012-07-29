@@ -1,0 +1,22 @@
+
+=head1 Feature D
+
+
+More text; still no link.
+
+
+=cut
+
+
+=over 4
+
+=item *
+
+Back to L<splithead2/"Feature C">
+
+=item *
+
+Up to L<splithead2>
+
+=back
+
