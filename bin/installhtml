@@ -213,7 +213,17 @@ split_on_item($podroot,           \@splitdirs, \@ignore, @splititem);
 #warn "converting files\n" if $verbose;
 #warn "\@ignore\t= @ignore\n" if $verbose;
 foreach my $dir (@podpath) {
-    installdir($dir, $recurse, $podroot, \@splitdirs, \@ignore);
+    my $rv = installdir( {
+      dir             => $dir,
+      recurse         => $recurse,
+      podroot         => $podroot,
+      splitdirs       => \@splitdirs,
+      ignore          => \@ignore,
+      htmldir         => $htmldir,
+      verbose         => $verbose,
+      htmlroot        => $htmlroot,
+      podpath         => \@podpath,
+    } );
 }
 
 
@@ -496,31 +506,42 @@ sub splitpod {
 # installdir - takes care of converting the .pod and .pm files in the
 #  current directory to .html files and then installing those.
 #
-# $htmldir $verbose $htmlroot @podpath @ignore
+# $rv = installdir( {
+#   dir             => $dir,
+#   recurse         => $recurse,
+#   podroot         => $podroot,
+#   splitdirs       => $splitdirs,
+#   ignore          => \@ignore,
+#   htmldir         => $htmldir,
+#   verbose         => $verbose,
+#   htmlroot        => $htmlroot,
+#   podpath         => \@podpath,
+# } );
+
 sub installdir {
-    my($dir, $recurse, $podroot, $splitdirs, $ignore) = @_;
+    my $args = shift;
 
     my @dirlist; # directories to recurse on
     my @podlist; # .pod files to install
     my @pmlist;  # .pm files to install
 
     # should files in this directory get an index?
-    my $doindex = (grep($_ eq "$podroot/$dir", @$splitdirs) ? 0 : 1);
+    my $doindex = (grep($_ eq "$args->{podroot}/$args->{dir}", @{$args->{splitdirs}}) ? 0 : 1);
 
-    opendir(my $DIR, "$podroot/$dir")
-        || die "$0: error opening directory $podroot/$dir: $!\n";
+    opendir(my $DIR, "$args->{podroot}/$args->{dir}")
+        || die "$0: error opening directory $args->{podroot}/$args->{dir}: $!\n";
 
     while(readdir $DIR) {
         no_upwards($_) or next;
-        my $is_dir = -d "$podroot/$dir/$_";
-        next if $is_dir and not $recurse;
+        my $is_dir = -d "$args->{podroot}/$args->{dir}/$_";
+        next if $is_dir and not $args->{recurse};
         my $target = (
             $is_dir    ? \@dirlist :
             s/\.pod$// ? \@podlist :
             s/\.pm$//  ? \@pmlist  :
             undef
         );
-        push @$target, "$dir/$_" if $target;
+        push @$target, "$args->{dir}/$_" if $target;
     }
 
     closedir($DIR);
@@ -528,31 +549,41 @@ sub installdir {
     if ($^O eq 'VMS') { s/\.dir$//i for @dirlist }
 
     # recurse on all subdirectories we kept track of
-    foreach $dir (@dirlist) {
-        installdir($dir, $recurse, $podroot, $splitdirs, $ignore);
+    foreach my $dir (@dirlist) {
+        my $rv = installdir( {
+          dir             => $dir,
+          recurse         => $args->{recurse},
+          podroot         => $args->{podroot},
+          splitdirs       => $args->{splitdirs},
+          ignore          => $args->{ignore},
+          htmldir         => $args->{htmldir},
+          verbose         => $args->{verbose},
+          htmlroot        => $args->{htmlroot},
+          podpath         => $args->{podpath},
+        } );
     }
 
     # install all the pods we found
     foreach my $pod (@podlist) {
         # check if we should ignore it.
         next if $pod =~ m(/t/); # comes from a test file
-        next if grep($_ eq "$pod.pod", @$ignore);
+        next if grep($_ eq "$pod.pod", @{$args->{ignore}});
     
         # check if a .pm files exists too
         if (grep($_ eq $pod, @pmlist)) {
-            print  "$0: Warning both '$podroot/$pod.pod' and "
-            . "'$podroot/$pod.pm' exist, using pod\n";
-            push(@ignore, "$pod.pm");
+            print  "$0: Warning both '$args->{podroot}/$pod.pod' and "
+            . "'$args->{podroot}/$pod.pm' exist, using pod\n";
+            push(@{$args->{ignore}}, "$pod.pm");
         }
         my $rv = runpod2html( {
           podfile         => "$pod.pod",
-          podroot         => $podroot,
-          podpath         => \@podpath,
+          podroot         => $args->{podroot},
+          podpath         => $args->{podpath},
           doindex         => $doindex,
-          htmldir         => $htmldir,
-          htmlroot        => $htmlroot,
-          verbose         => $verbose,
-          recurse         => $recurse,
+          htmldir         => $args->{htmldir},
+          htmlroot        => $args->{htmlroot},
+          verbose         => $args->{verbose},
+          recurse         => $args->{recurse},
         } );
     }
 
@@ -560,17 +591,17 @@ sub installdir {
     foreach my $pm (@pmlist) {
         # check if we should ignore it.
         next if $pm =~ m(/t/); # comes from a test file
-        next if grep($_ eq "$pm.pm", @ignore);
+        next if grep($_ eq "$pm.pm", @{$args->{ignore}});
     
         my $rv = runpod2html( {
           podfile         => "$pm.pm",
-          podroot         => $podroot,
-          podpath         => \@podpath,
+          podroot         => $args->{podroot},
+          podpath         => $args->{podpath},
           doindex         => $doindex,
-          htmldir         => $htmldir,
-          htmlroot        => $htmlroot,
-          verbose         => $verbose,
-          recurse         => $recurse,
+          htmldir         => $args->{htmldir},
+          htmlroot        => $args->{htmlroot},
+          verbose         => $args->{verbose},
+          recurse         => $args->{recurse},
         } );
     }
 }
