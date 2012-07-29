@@ -10,6 +10,7 @@ use Cwd;
 use Pod::Html;
 use Pod::Html::Auxiliary qw(
     anchorify
+    relativize_url
 );
 
 =head1 NAME
@@ -263,7 +264,7 @@ foreach my $dir (@splithead) {
         last if /name="name"/i;
         $_ =~ s{href="#(.*)">}{
             my $url = "$pod/$1.html" ;
-            $url = Pod::Html::relativize_url( $url, "$file.html" )
+            $url = relativize_url( $url, "$file.html" )
             if ( ! defined $Options{htmlroot} || $Options{htmlroot} eq '' );
             "href=\"$url\">" ;
         }egi;
@@ -344,7 +345,7 @@ sub create_index {
     
         my $url= "$pod/$file" ;
         if ( ! defined $Options{htmlroot} || $Options{htmlroot} eq '' ) {
-            $url = Pod::Html::relativize_url( "$pod/$file", $html ) ;
+            $url = relativize_url( "$pod/$file", $html ) ;
         }
     
         print $HTML qq(<DT><A HREF="$url">);
