@@ -241,7 +241,7 @@ foreach my $dir (@splithead) {
 	last if /name="name"/i;
 	$_ =~ s{href="#(.*)">}{
 	    my $url = "$pod/$1.html" ;
-	    $url = Pod::Html::relativize_url( $url, "$file.html" )
+	    $url = Pod::Simple::XHTML::LocalPodLinks::relativize_url( $url, "$file.html" )
 	    if ( ! defined $Options{htmlroot} || $Options{htmlroot} eq '' );
 	    "href=\"$url\">" ;
 	}egi;
@@ -321,7 +321,7 @@ sub create_index {
 
 	my $url= "$pod/$file" ;
 	if ( ! defined $Options{htmlroot} || $Options{htmlroot} eq '' ) {
-	    $url = Pod::Html::relativize_url( "$pod/$file", $html ) ;
+	    $url = Pod::Simple::XHTML::LocalPodLinks::relativize_url( "$pod/$file", $html ) ;
 	}
 
 	print HTML qq(<DT><A HREF="$url">);
