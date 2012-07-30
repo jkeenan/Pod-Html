@@ -1,0 +1,9 @@
+=head1 Feature C
+
+Yet another paragraph
+
+=head1 Feature D
+
+More text; still no link.
+
+=cut
