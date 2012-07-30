@@ -13,7 +13,7 @@ use strict;
 use Cwd;
 use File::Path qw( rmtree );
 use Pod::Html ();
-use Test::More qw(no_plan); # tests => 12;
+use Test::More tests => 21;
 
 my $cwd = Pod::Html::Auxiliary::unixify(Cwd::cwd());
 my $tmphtmldir = "$cwd/tmphtml";
@@ -66,10 +66,34 @@ foreach my $file (
 
 # cleanup
 
+TODO: {
+    local $TODO = '--splithead failing to clean up intermediate files';
+
+    foreach my $dir (
+        "$cwd/xt/split/splithead1",
+        "$cwd/xt/split/splithead2",
+    ) {
+        ok( ! (-d $dir), "Intermediate directory cleaned up automatically" );
+    }
+    foreach my $file (
+        "$cwd/xt/split/splithead1/feature_a.pod",
+        "$cwd/xt/split/splithead1/feature_b.pod",
+        "$cwd/xt/split/splithead2/feature_c.pod",
+        "$cwd/xt/split/splithead2/feature_d.pod",
+    ) {
+        ok( ! (-f $file), "Intermediate file cleaned up automatically" );
+    }
+
+}
+
 1 while unlink $cachefile;
 1 while unlink $tcachefile;
 is(-f $cachefile, undef, "No cache file to end");
 is(-f $tcachefile, undef, "No cache file to end");
+
+# Compensate for the lack of cleanup described in the TODO block above.
+File::Path::rmtree( "$cwd/xt/split/splithead1", 0 );
+File::Path::rmtree( "$cwd/xt/split/splithead2", 0 );
 
 File::Path::rmtree( $tmphtmldir, 0 );
 ok(! (-d $tmphtmldir), "No temp html directory to start");
