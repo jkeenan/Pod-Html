@@ -13,7 +13,7 @@ use strict;
 use Cwd;
 use File::Path qw( rmtree );
 use Pod::Html ();
-use Test::More tests => 15;
+use Test::More tests => 21;
 
 my $cwd = Pod::Html::Auxiliary::unixify(Cwd::cwd());
 my $tmphtmldir = "$cwd/tmphtml";
@@ -65,6 +65,26 @@ foreach my $file (
 }
 
 # cleanup
+
+TODO: {
+    local $TODO = '--splithead failing to clean up intermediate files';
+
+    foreach my $dir (
+        "$cwd/xt/split/splithead1",
+        "$cwd/xt/split/splithead2",
+    ) {
+        ok( ! (-d $dir), "Intermediate directory cleaned up automatically" );
+    }
+    foreach my $file (
+        "$cwd/xt/split/splithead1/feature_a.pod",
+        "$cwd/xt/split/splithead1/feature_b.pod",
+        "$cwd/xt/split/splithead2/feature_c.pod",
+        "$cwd/xt/split/splithead2/feature_d.pod",
+    ) {
+        ok( ! (-f $file), "Intermediate file cleaned up automatically" );
+    }
+
+}
 
 1 while unlink $cachefile;
 1 while unlink $tcachefile;
