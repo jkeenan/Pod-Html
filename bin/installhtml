@@ -329,9 +329,10 @@ sub create_index {
     print $HTML "<DL COMPACT>\n";
     foreach my $file (@files) {
     
+        my $fullfile = "$dir/$file";
         my $filedata = do {
-            open(my $IN, '<', "$dir/$file") ||
-            die "$0: error opening $dir/$file for input: $!\n";
+            open(my $IN, '<', $fullfile) ||
+            die "$0: error opening $fullfile for input: $!\n";
             local $/ = undef;
             <$IN>;
             close $IN;
@@ -341,7 +342,7 @@ sub create_index {
         my($lcp1, $lcp2) =
             ($filedata =~
             m#<h1 id="NAME">NAME</h1>\s*<p>\s*(\S+)\s+-\s+(\S.*?\S)</p>#);
-        defined $lcp1 or die "$0: can't find NAME section in $dir/$file\n";
+        defined $lcp1 or die "$0: can't find NAME section in $fullfile\n";
     
         my $url= "$pod/$file" ;
         if ( ! defined $Options{htmlroot} || $Options{htmlroot} eq '' ) {
@@ -374,8 +375,12 @@ sub split_on_head {
         push(@$ignore, "$podroot/$dirname/$filename");
     
         # split the pod
-        splitpod("$podroot/$dirname/$filename", "$podroot/$dirname", $htmldir,
-            $splitdirs);
+        splitpod(
+            "$podroot/$dirname/$filename",
+            "$podroot/$dirname",
+            $htmldir,
+            $splitdirs,
+        );
     }
 }
 
@@ -396,21 +401,22 @@ sub split_on_item {
         $filename = "$2.pod";
     
         # since we are splitting this file it shouldn't be converted.
-        push(@$ignore, "$podroot/$dirname.pod");
+        my $this_poddir = "$podroot/$dirname";
+        push(@$ignore, "$this_poddir.pod");
     
         # split the pod
-        push(@$splitdirs, "$podroot/$dirname");
-        if (! -d "$podroot/$dirname") {
-            mkdir("$podroot/$dirname", 0755) ||
-                die "$0: error creating directory $podroot/$dirname: $!\n";
+        push(@$splitdirs, $this_poddir);
+        if (! -d $this_poddir) {
+            mkdir($this_poddir, 0755) ||
+                die "$0: error creating directory $this_poddir: $!\n";
         }
-        chdir("$podroot/$dirname") ||
-            die "$0: error changing to directory $podroot/$dirname: $!\n";
+        chdir($this_poddir) ||
+            die "$0: error changing to directory $this_poddir: $!\n";
         die "$splitter not found. Use '-splitpod dir' option.\n"
             unless -f $splitter;
         system($perl, $splitter, "../$filename") &&
             warn "$0: error running '$splitter ../$filename'"
-             ." from $podroot/$dirname";
+             ." from $this_poddir";
     }
     chdir($pwd);
 }
@@ -458,10 +464,11 @@ sub splitpod {
     $pod =~ s,.*/(.*),$1,;    # get the last part of the name
     my $dir = $pod;
     $dir =~ s/\.pod//g;
-    push(@$splitdirs, "$poddir/$dir");
-    mkdir("$poddir/$dir", 0755) ||
-        die "$0: could not create directory $poddir/$dir: $!\n"
-    unless -d "$poddir/$dir";
+    my $this_poddir = "$poddir/$dir";
+    push(@$splitdirs, $this_poddir);
+    mkdir($this_poddir, 0755) ||
+        die "$0: could not create directory $this_poddir: $!\n"
+    unless -d $this_poddir;
 
     $poddata[0] =~ /^\s*=head[1-6]\s+(.*)/;
     $section    = "";
@@ -485,9 +492,10 @@ sub splitpod {
         $file = "$dir/" . anchorify($section) . ".pod";
     
         # create the new .pod file
-        print "\tcreating $poddir/$file\n" if $verbose;
-        open(my $SPLITOUT, '>', "$poddir/$file") ||
-            die "$0: error opening $poddir/$file for output: $!\n";
+        my $this_podfile = "$poddir/$file";
+        print "\tcreating $this_podfile\n" if $verbose;
+        open(my $SPLITOUT, '>', $this_podfile) ||
+            die "$0: error opening $this_podfile for output: $!\n";
         $poddata[$i] =~ s,L<([^<>]*)>,
                 defined $heads{anchorify($1)} ? "L<$dir/$1>" : "L<$1>"
                  ,ge;
@@ -498,7 +506,7 @@ sub splitpod {
         print $SPLITOUT "=item *\n\nUp to L<$dir>\n\n";
         print $SPLITOUT "=back\n\n";
         close($SPLITOUT) ||
-            die "$0: error closing $poddir/$file: $!\n";
+            die "$0: error closing $this_podfile: $!\n";
     }
 }
 
