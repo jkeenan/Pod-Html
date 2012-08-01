@@ -14,104 +14,6 @@ use Pod::Html::Auxiliary qw(
     relativize_url
 );
 
-=head1 NAME
-
-installhtml - converts a collection of POD pages to HTML format.
-
-=head1 SYNOPSIS
-
-    installhtml  [--help] [--podpath=<name>:...:<name>] [--podroot=<name>]
-         [--htmldir=<name>] [--htmlroot=<name>]  [--norecurse] [--recurse]
-         [--splithead=<name>,...,<name>]   [--splititem=<name>,...,<name>]
-         [--ignore=<name>,...,<name>]  [--verbose]
-
-=head1 DESCRIPTION
-
-I<installhtml> converts a collection of POD pages to a corresponding
-collection of HTML pages.  This is primarily used to convert the pod
-pages found in the perl distribution.
-
-=head1 OPTIONS
-
-=over 4
-
-=item B<--help> help
-
-Displays the usage.
-
-=item B<--podroot> POD search path base directory
-
-The base directory to search for all .pod and .pm files to be converted.
-Default is current directory.
-
-=item B<--podpath> POD search path
-
-The list of directories to search for .pod and .pm files to be converted.
-Default is 'podroot/.'.
-
-=item B<--recurse> recurse on subdirectories
-
-Whether or not to convert all .pm and .pod files found in subdirectories
-too.  Default is to not recurse.
-
-=item B<--htmldir> HTML destination directory
-
-The base directory which all HTML files will be written to.  This should
-be a path relative to the filesystem, not the resulting URL.
-
-=item B<--htmlroot> URL base directory
-
-The base directory which all resulting HTML files will be visible at in
-a URL.  The default is '/'.
-
-=item B<--splithead> POD files to split on =head directive
-
-Comma-separated list of pod files to split by the =head directive.  The
-.pod suffix is optional. These files should have names specified
-relative to podroot.
-
-=item B<--splititem> POD files to split on =item directive
-
-Comma-separated list of all pod files to split by the =item directive.
-The .pod suffix is optional.  I<installhtml> does not do the actual
-split, rather it invokes I<splitpod> to do the dirty work.  As with
---splithead, these files should have names specified relative to podroot.
-
-=item B<--splitpod> Directory containing the splitpod program
-
-The directory containing the splitpod program. The default is 'podroot/pod'.
-
-=item B<--ignore> files to be ignored
-
-Comma-separated of files that shouldn't be installed, given relative
-to podroot.
-
-=item B<--verbose> verbose output
-
-Self-explanatory.
-
-=back
-
-=head1 EXAMPLE
-
-The following command-line is an example of the one we use to convert
-perl documentation:
-
-    ./installhtml --podpath=lib:ext:pod:vms   \
-            --podroot=/usr/src/perl     \
-            --htmldir=/perl/nmanual     \
-            --htmlroot=/perl/nmanual    \
-            --splithead=pod/perlipc     \
-            --splititem=pod/perlfunc    \
-            --recurse \
-            --verbose
-
-=head1 AUTHOR
-
-Chris Hall E<lt>hallc@cs.colorado.eduE<gt>
-
-=cut
-
 my $usage;
 
 $usage =<<END_OF_USAGE;
@@ -693,6 +595,104 @@ sub runpod2html {
     die "$0: error running pod2html: $!\n" if $?;
     return $rv;
 }
+
+=head1 NAME
+
+installhtml - converts a collection of POD pages to HTML format.
+
+=head1 SYNOPSIS
+
+    installhtml  [--help] [--podpath=<name>:...:<name>] [--podroot=<name>]
+         [--htmldir=<name>] [--htmlroot=<name>]  [--norecurse] [--recurse]
+         [--splithead=<name>,...,<name>]   [--splititem=<name>,...,<name>]
+         [--ignore=<name>,...,<name>]  [--verbose]
+
+=head1 DESCRIPTION
+
+I<installhtml> converts a collection of POD pages to a corresponding
+collection of HTML pages.  This is primarily used to convert the pod
+pages found in the perl distribution.
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<--help> help
+
+Displays the usage.
+
+=item B<--podroot> POD search path base directory
+
+The base directory to search for all .pod and .pm files to be converted.
+Default is current directory.
+
+=item B<--podpath> POD search path
+
+The list of directories to search for .pod and .pm files to be converted.
+Default is 'podroot/.'.
+
+=item B<--recurse> recurse on subdirectories
+
+Whether or not to convert all .pm and .pod files found in subdirectories
+too.  Default is to not recurse.
+
+=item B<--htmldir> HTML destination directory
+
+The base directory which all HTML files will be written to.  This should
+be a path relative to the filesystem, not the resulting URL.
+
+=item B<--htmlroot> URL base directory
+
+The base directory which all resulting HTML files will be visible at in
+a URL.  The default is '/'.
+
+=item B<--splithead> POD files to split on =head directive
+
+Comma-separated list of pod files to split by the =head directive.  The
+.pod suffix is optional. These files should have names specified
+relative to podroot.
+
+=item B<--splititem> POD files to split on =item directive
+
+Comma-separated list of all pod files to split by the =item directive.
+The .pod suffix is optional.  I<installhtml> does not do the actual
+split, rather it invokes I<splitpod> to do the dirty work.  As with
+--splithead, these files should have names specified relative to podroot.
+
+=item B<--splitpod> Directory containing the splitpod program
+
+The directory containing the splitpod program. The default is 'podroot/pod'.
+
+=item B<--ignore> files to be ignored
+
+Comma-separated of files that shouldn't be installed, given relative
+to podroot.
+
+=item B<--verbose> verbose output
+
+Self-explanatory.
+
+=back
+
+=head1 EXAMPLE
+
+The following command-line is an example of the one we use to convert
+perl documentation:
+
+    ./installhtml --podpath=lib:ext:pod:vms   \
+            --podroot=/usr/src/perl     \
+            --htmldir=/perl/nmanual     \
+            --htmlroot=/perl/nmanual    \
+            --splithead=pod/perlipc     \
+            --splititem=pod/perlfunc    \
+            --recurse \
+            --verbose
+
+=head1 AUTHOR
+
+Chris Hall E<lt>hallc@cs.colorado.eduE<gt>
+
+=cut
 
 __END__
 # Fully encapsulated
