@@ -16,37 +16,6 @@ use Pod::Html::Auxiliary qw(
     relativize_url
 );
 
-my $usage;
-
-$usage =<<END_OF_USAGE;
-Usage: $0 --help --podpath=<name>:...:<name> --podroot=<name>
-         --htmldir=<name> --htmlroot=<name> --norecurse --recurse
-         --splithead=<name>,...,<name> --splititem=<name>,...,<name>
-         --ignore=<name>,...,<name> --verbose
-
-    --help      - this message
-    --podpath   - colon-separated list of directories containing .pod and
-                  .pm files to be converted (. by default).
-    --podroot   - filesystem base directory from which all relative paths in
-                  podpath stem (default is .).
-    --htmldir   - directory to store resulting html files in relative
-                  to the filesystem (\$podroot/html by default).
-    --htmlroot  - http-server base directory from which all relative paths
-                  in podpath stem (default is /).
-    --norecurse - don't recurse on those subdirectories listed in podpath.
-                  (default behavior).
-    --recurse   - recurse on those subdirectories listed in podpath
-    --splithead - comma-separated list of .pod or .pm files to split.  will
-                  split each file into several smaller files at every occurrence
-                  of a pod =head[1-6] directive.
-    --splititem - comma-separated list of .pod or .pm files to split using
-                  splitpod.
-    --splitpod  - directory where the program splitpod can be found
-                  (\$podroot/pod by default).
-    --ignore    - comma-separated list of files that shouldn't be installed.
-    --verbose   - self-explanatory.
-
-END_OF_USAGE
 
 my %args = (
     podpath     => [ '.' ],
@@ -80,8 +49,7 @@ my $result = GetOptions( \%Options, qw(
     verbose
 ));
 usage("invalid parameters") unless $result;
-#parse_command_line();
-my $parsed_args = parse_command_line( \%Options, \%args );
+my $parsed_args = process_options( \%Options, \%args );
 
 # set these variables to appropriate values if the user didn't specify
 #  values for them.
@@ -166,11 +134,39 @@ foreach my $dir (@{$parsed_args->{splithead}}) {
 
 sub usage {
     warn "$0: @_\n" if @_;
+    my $usage =<<END_OF_USAGE;
+Usage: $0 --help --podpath=<name>:...:<name> --podroot=<name>
+         --htmldir=<name> --htmlroot=<name> --norecurse --recurse
+         --splithead=<name>,...,<name> --splititem=<name>,...,<name>
+         --ignore=<name>,...,<name> --verbose
+
+    --help      - this message
+    --podpath   - colon-separated list of directories containing .pod and
+                  .pm files to be converted (. by default).
+    --podroot   - filesystem base directory from which all relative paths in
+                  podpath stem (default is .).
+    --htmldir   - directory to store resulting html files in relative
+                  to the filesystem (\$podroot/html by default).
+    --htmlroot  - http-server base directory from which all relative paths
+                  in podpath stem (default is /).
+    --norecurse - don't recurse on those subdirectories listed in podpath.
+                  (default behavior).
+    --recurse   - recurse on those subdirectories listed in podpath
+    --splithead - comma-separated list of .pod or .pm files to split.  will
+                  split each file into several smaller files at every occurrence
+                  of a pod =head[1-6] directive.
+    --splititem - comma-separated list of .pod or .pm files to split using
+                  splitpod.
+    --splitpod  - directory where the program splitpod can be found
+                  (\$podroot/pod by default).
+    --ignore    - comma-separated list of files that shouldn't be installed.
+    --verbose   - self-explanatory.
+
+END_OF_USAGE
     die $usage;
 }
 
-#my $parsed_args = parse_command_line( \%Options, \%args );
-sub parse_command_line {
+sub process_options {
     my ($Options, $args) = @_;
     my %parsed_args = ();
     usage() if defined $Options->{help};
@@ -650,15 +646,4 @@ Chris Hall E<lt>hallc@cs.colorado.eduE<gt>
 =cut
 
 __END__
-# Fully encapsulated
-# split_on_head
-# splitpod
-# installdir
-# runpod2html
-#
-# Not fully encapsulated
-# usage
-# parse_command_line
-# create_index (only %Options remains)
-# split_on_item ( change to hashref)
 print STDERR Dumper $parsed_args;
