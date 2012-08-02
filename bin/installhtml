@@ -3,7 +3,9 @@
 # This file should really be extracted from a .PL file
 
 use strict;
+use vars qw( %Options );
 use Config;        # for config options in the makefile
+#use Data::Dumper;$Data::Dumper::Indent=1;
 use File::Basename qw( dirname );
 use File::Spec::Functions qw(rel2abs no_upwards);
 use Getopt::Long;    # for command-line parsing
@@ -46,30 +48,22 @@ Usage: $0 --help --podpath=<name>:...:<name> --podroot=<name>
 
 END_OF_USAGE
 
-my (@podpath, $podroot, $htmldir, $htmlroot, $recurse, @splithead,
-    @splititem, $splitpod, $verbose, $pod2html, @ignore);
-
-@podpath = ( "." );    # colon-separated list of directories containing .pod
-            # and .pm files to be converted.
-$podroot = ".";        # assume the pods we want are here
-$htmldir = "";        # nothing for now...
-$htmlroot = "/";    # default value
-$recurse = 0;        # default behavior
-@splithead = ();    # don't split any files by default
-@splititem = ();    # don't split any files by default
-$splitpod = "";        # nothing for now.
-
-$verbose = 0;        # whether or not to print debugging info
-
-$pod2html = "pod/pod2html";
-
+my %args = (
+    podpath     => [ '.' ],
+    podroot     => '.',
+    htmldir     => '',
+    htmlroot    => '/',
+    recurse     => 0,
+    splithead   => [],
+    splititem   => [],
+    splitpod    => '',
+    verbose     => 0,
+);
 usage("") unless @ARGV;
 
 # Overcome shell's p1,..,p8 limitation.  
 # See vms/descrip_mms.template -> descrip.mms for invocation.
 if ( $^O eq 'VMS' ) { @ARGV = split(/\s+/,$ARGV[0]); }
-
-use vars qw( %Options );
 
 # parse the command-line
 my $result = GetOptions( \%Options, qw(
@@ -86,79 +80,60 @@ my $result = GetOptions( \%Options, qw(
     verbose
 ));
 usage("invalid parameters") unless $result;
-parse_command_line();
-
+#parse_command_line();
+my $parsed_args = parse_command_line( \%Options, \%args );
 
 # set these variables to appropriate values if the user didn't specify
 #  values for them.
-$htmldir = "$htmlroot/html" unless $htmldir;
-$splitpod = "$podroot/pod" unless $splitpod;
-
+$parsed_args->{htmldir}  ||= "$parsed_args->{htmlroot}/html";
+$parsed_args->{splitpod} ||= "$parsed_args->{podroot}/pod";
 
 # make sure that the destination directory exists
-(mkdir($htmldir, 0755) ||
-    die "$0: cannot make directory $htmldir: $!\n") if ! -d $htmldir;
-
+if (! -d $parsed_args->{htmldir} ) {
+    mkdir($parsed_args->{htmldir}, 0755)
+        || die "$0: cannot make directory $parsed_args->{htmldir}: $!\n";
+}
 
 # the following array will eventually contain files that are to be
 # ignored in the conversion process.  these are files that have been
 # process by splititem or splithead and should not be converted as a
 # result.
-# split pods. It's important to do this before convert ANY pods because
+# It's important to do this before convert ANY pods because
 # it may affect some of the links
-# $splitdirs_ref: # files in these directories won't get an index
-my ($splitdirs_ref, $ignoredirs_ref) = split_on_head ( {
-    podroot     => $podroot,
-    htmldir     => $htmldir,
-    splithead   => \@splithead,
-    verbose     => $verbose,
-} );
-($splitdirs_ref, $ignoredirs_ref) =
-    split_on_item($podroot, $splitdirs_ref, $ignoredirs_ref, @splititem);
+
+$parsed_args = split_on_head( $parsed_args );
+$parsed_args = split_on_item( $parsed_args );
 
 # convert the pod pages found in @poddirs
-#warn "converting files\n" if $verbose;
-#warn "\@ignore\t= @ignore\n" if $verbose;
-foreach my $dir (@podpath) {
+foreach my $dir (@{$parsed_args->{podpath}}) {
     my $rv = installdir( {
       dir             => $dir,
-      recurse         => $recurse,
-      podroot         => $podroot,
-      splitdirs       => $splitdirs_ref,
-      ignore          => $ignoredirs_ref,
-      htmldir         => $htmldir,
-      verbose         => $verbose,
-      htmlroot        => $htmlroot,
-      podpath         => \@podpath,
+      %{$parsed_args}
     } );
 }
 
 
 # now go through and create master indices for each pod we split
-foreach my $dir (@splititem) {
-    print "creating index $htmldir/$dir.html\n" if $verbose;
-    create_index("$htmldir/$dir.html", "$htmldir/$dir");
+foreach my $dir (@{$parsed_args->{splititem}}) {
+    print "creating index $parsed_args->{htmldir}/$dir.html\n" if
+    $parsed_args->{verbose};
+    create_index("$parsed_args->{htmldir}/$dir.html", "$parsed_args->{htmldir}/$dir");
 }
 
-foreach my $dir (@splithead) {
+foreach my $dir (@{$parsed_args->{splithead}}) {
     (my $pod = $dir) =~ s,^.*/,,;
     $dir .= ".pod" unless $dir =~ /(\.pod|\.pm)$/;
     # let pod2html create the file
-   my $rv = runpod2html( {
-     podfile         => $dir,
-     podroot         => $podroot,
-     podpath         => \@podpath,
-     doindex         => 1,
-     htmldir         => $htmldir,
-     htmlroot        => $htmlroot,
-     verbose         => $verbose,
-     recurse         => $recurse,
-   } );
+    my $rv = runpod2html( {
+      podfile         => $dir,
+      doindex         => 1,
+      %{$parsed_args},
+    } );
 
     # now go through and truncate after the index
     $dir =~ /^(.*?)(\.pod|\.pm)?$/sm;
-    my $file = "$htmldir/$1";
-    print "creating index $file.html\n" if $verbose;
+    my $file = "$parsed_args->{htmldir}/$1";
+    print "creating index $file.html\n" if $parsed_args->{verbose};
 
     # read in everything until what would have been the first =head
     # directive, patching the index as we go.
@@ -168,10 +143,11 @@ foreach my $dir (@splithead) {
     my @data = ();
     while (<$H>) {
         last if /name="name"/i;
+#            if ( ! defined $Options{htmlroot} || $Options{htmlroot} eq '' );
         $_ =~ s{href="#(.*)">}{
             my $url = "$pod/$1.html" ;
             $url = relativize_url( $url, "$file.html" )
-            if ( ! defined $Options{htmlroot} || $Options{htmlroot} eq '' );
+            if ( ! defined $parsed_args->{htmlroot} || $parsed_args->{htmlroot} eq '' );
             "href=\"$url\">" ;
         }egi;
         push @data, $_;
@@ -193,27 +169,32 @@ sub usage {
     die $usage;
 }
 
+#my $parsed_args = parse_command_line( \%Options, \%args );
 sub parse_command_line {
-    usage() if defined $Options{help};
-    $Options{help} = "";                 # make -w shut up
+    my ($Options, $args) = @_;
+    my %parsed_args = ();
+    usage() if defined $Options->{help};
+    $Options->{help} = "";                 # make -w shut up
+
+    while (my ($k,$v) = each %{$args}) {
+        $parsed_args{$k} = $v;
+    }
 
     # list of directories
-    @podpath   = split(":", $Options{podpath}) if defined $Options{podpath};
+    @{$parsed_args->{podpath}}   = split(":", $Options->{podpath}) if defined $Options->{podpath};
 
     # lists of files
-    @splithead = split(",", $Options{splithead}) if defined $Options{splithead};
-    @splititem = split(",", $Options{splititem}) if defined $Options{splititem};
+    @{$parsed_args->{splithead}} = split(",", $Options->{splithead}) if defined $Options->{splithead};
+    @{$parsed_args->{splititem}} = split(",", $Options->{splititem}) if defined $Options->{splititem};
 
-    $htmldir  = $Options{htmldir}        if defined $Options{htmldir};
-    $htmlroot = $Options{htmlroot}       if defined $Options{htmlroot};
-    $podroot  = $Options{podroot}        if defined $Options{podroot};
-    $splitpod = $Options{splitpod}       if defined $Options{splitpod};
+    for my $r ( qw| htmldir htmlroot podroot splitpod recurse verbose | ) {
+        $parsed_args->{$r} = $Options->{$r} if defined $Options->{$r};
+    }
 
-    $recurse  = $Options{recurse}        if defined $Options{recurse};
-    $verbose  = $Options{verbose}        if defined $Options{verbose};
-
-    @ignore = map "$podroot/$_", split(",", $Options{ignore})
-        if defined $Options{ignore};
+    @{$parsed_args->{ignore}} =
+        map "$parsed_args->{podroot}/$_", split(",", $Options->{ignore})
+            if defined $Options->{ignore};
+    return $parsed_args;
 }
 
 sub create_index {
@@ -262,18 +243,10 @@ sub create_index {
     close($HTML);
 }
 
-
-#split_on_head($podroot, $htmldir, \@splitdirs, \@ignore, @splithead);
-#my ($splitdirs_ref, $ignoredirs_ref) = split_on_head ( {
-#    podroot     => $podroot,
-#    splithead   => \@splithead,
-#    verbose     => $verbose,
-#} );
-
 sub split_on_head {
     my $args = shift;
     my($pod, $dirname, $filename);
-    my @ignoredirs = ();
+    #   my @ignoredirs = ();
 
     # split the files specified in @splithead on =head[1-6] pod directives
     print "splitting files by head.\n"
@@ -286,26 +259,27 @@ sub split_on_head {
         $filename = "$2.pod";
     
         # since we are splitting this file it shouldn't be converted.
-        push(@ignoredirs, "$args->{podroot}/$dirname/$filename");
+        push(@{$args->{ignoredirs}}, "$args->{podroot}/$dirname/$filename");
     
-        my $splitdirs_ref = splitpod( {
+        push(@{$args->{splitdirs}}, splitpod( {
             file        => "$args->{podroot}/$dirname/$filename",
-            #    splitdirs   => $args->{splitdirs} || [],
+            splitdirs   => $args->{splitdirs},
             verbose     => $args->{verbose},
-        } );
+        } ) );
     }
-    return ($splitdirs_ref, \@ignoredirs);
+    return $args;
 }
 
 sub split_on_item {
-    my($podroot, $splitdirs_ref, $ignore_ref, @splititem) = @_;
+    my $args = shift;
     my($pwd, $dirname, $filename);
 
-    print "splitting files by item.\n" if $verbose && $#splititem >= 0;
+    print "splitting files by item.\n"
+        if $args->{verbose} && $#{$args->{splititem}} >= 0;
     $pwd = getcwd();
-    my $splitter = rel2abs("$splitpod/splitpod", $pwd);
+    my $splitter = rel2abs("$args->{splitpod}/splitpod", $pwd);
     my $perl = rel2abs($^X, $pwd);
-    foreach my $pod (@splititem) {
+    foreach my $pod (@{$args->{splititem}}) {
         # figure out the directory to split into
         $pod      =~ s,^([^/]*)$,/$1,;
         $pod      =~ m,(.*)/(.*?)(\.pod)?$,;
@@ -313,35 +287,30 @@ sub split_on_item {
         $filename = "$2.pod";
     
         # since we are splitting this file it shouldn't be converted.
-        my $this_poddir = "$podroot/$dirname";
-        push(@{$ignoredirs_ref}, "$this_poddir.pod");
+        my $this_poddir = "$args->{podroot}/$dirname";
+        push(@{$args->{ignore}}, "$this_poddir.pod");
     
         # split the pod
-        push(@{$splitdirs_ref}, $this_poddir);
+        push(@{$args->{splitdirs}}, $this_poddir);
         if (! -d $this_poddir) {
             mkdir($this_poddir, 0755) ||
                 die "$0: error creating directory $this_poddir: $!\n";
         }
         chdir($this_poddir) ||
             die "$0: error changing to directory $this_poddir: $!\n";
-        die "$splitter not found. Use '-splitpod dir' option.\n"
+        die "$splitter not found. Use '--splitpod dir' option.\n"
             unless -f $splitter;
         system($perl, $splitter, "../$filename") &&
             warn "$0: error running '$splitter ../$filename'"
              ." from $this_poddir";
     }
     chdir($pwd);
-    return ($splitdirs_ref, $ignoredirs_ref);
+    return $args;
 }
 
 # splitpod - splits a .pod file into several smaller .pod files
 #  where a new file is started each time a =head[1-6] pod directive
 #  is encountered in the input file.
-#
-# my $splitdirs_ref = splitpod( {
-#            file        => "$podroot/$dirname/$filename",
-#            verbose     => $verbose,
-#        } );
 
 sub splitpod {
     my $args = shift;
@@ -432,22 +401,8 @@ sub splitpod {
     return \@splitdirs;
 }
 
-
-#
 # installdir - takes care of converting the .pod and .pm files in the
 #  current directory to .html files and then installing those.
-#
-# $rv = installdir( {
-#   dir             => $dir,
-#   recurse         => $recurse,
-#   podroot         => $podroot,
-#   splitdirs       => $splitdirs_ref,
-#   ignore          => $ignoredirs_ref,
-#   htmldir         => $htmldir,
-#   verbose         => $verbose,
-#   htmlroot        => $htmlroot,
-#   podpath         => \@podpath,
-# } );
 
 sub installdir {
     my $args = shift;
@@ -706,3 +661,4 @@ __END__
 # parse_command_line
 # create_index (only %Options remains)
 # split_on_item ( change to hashref)
+print STDERR Dumper $parsed_args;
