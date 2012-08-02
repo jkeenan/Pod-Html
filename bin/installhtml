@@ -28,11 +28,6 @@ my %args = (
     splitpod    => '',
     verbose     => 0,
 );
-usage("") unless @ARGV;
-
-# Overcome shell's p1,..,p8 limitation.  
-# See vms/descrip_mms.template -> descrip.mms for invocation.
-if ( $^O eq 'VMS' ) { @ARGV = split(/\s+/,$ARGV[0]); }
 
 #my $parsed_args = process_options( \%Options, \%args );
 my $opts = parse_command_line();
@@ -155,6 +150,12 @@ END_OF_USAGE
 
 sub parse_command_line {
     my %opts = ();
+    usage("") unless @ARGV;
+    
+    # Overcome shell's p1,..,p8 limitation.  
+    # See vms/descrip_mms.template -> descrip.mms for invocation.
+    if ( $^O eq 'VMS' ) { @ARGV = split(/\s+/,$ARGV[0]); }
+
     my $result = GetOptions( \%opts, qw(
         help
         podpath=s
