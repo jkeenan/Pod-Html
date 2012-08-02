@@ -33,16 +33,17 @@ my %args = (
 my $opts = parse_command_line();
 my $parsed_args = process_options( \%args, $opts );
 
-# set these variables to appropriate values if the user didn't specify
-#  values for them.
-$parsed_args->{htmldir}  ||= "$parsed_args->{htmlroot}/html";
-$parsed_args->{splitpod} ||= "$parsed_args->{podroot}/pod";
-
-# make sure that the destination directory exists
-if (! -d $parsed_args->{htmldir} ) {
-    mkdir($parsed_args->{htmldir}, 0755)
-        || die "$0: cannot make directory $parsed_args->{htmldir}: $!\n";
-}
+## set these variables to appropriate values if the user didn't specify
+##  values for them.
+#$parsed_args->{htmldir}  ||= "$parsed_args->{htmlroot}/html";
+#$parsed_args->{splitpod} ||= "$parsed_args->{podroot}/pod";
+#
+## make sure that the destination directory exists
+#if (! -d $parsed_args->{htmldir} ) {
+#    mkdir($parsed_args->{htmldir}, 0755)
+#        || die "$0: cannot make directory $parsed_args->{htmldir}: $!\n";
+#}
+$parsed_args = cleanup_elements($parsed_args);
 
 # the following array will eventually contain files that are to be
 # ignored in the conversion process.  these are files that have been
@@ -198,6 +199,21 @@ sub process_options {
     @{$parsed_args->{ignore}} =
         map "$parsed_args->{podroot}/$_", split(",", $opts->{ignore})
             if defined $opts->{ignore};
+    return $parsed_args;
+}
+
+sub cleanup_elements {
+    my $parsed_args = shift;
+    # set these variables to appropriate values if the user didn't specify
+    #  values for them.
+    $parsed_args->{htmldir}  ||= "$parsed_args->{htmlroot}/html";
+    $parsed_args->{splitpod} ||= "$parsed_args->{podroot}/pod";
+    
+    # make sure that the destination directory exists
+    if (! -d $parsed_args->{htmldir} ) {
+        mkdir($parsed_args->{htmldir}, 0755)
+            || die "$0: cannot make directory $parsed_args->{htmldir}: $!\n";
+    }
     return $parsed_args;
 }
 
