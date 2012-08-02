@@ -34,22 +34,9 @@ usage("") unless @ARGV;
 # See vms/descrip_mms.template -> descrip.mms for invocation.
 if ( $^O eq 'VMS' ) { @ARGV = split(/\s+/,$ARGV[0]); }
 
-# parse the command-line
-#my $result = GetOptions( \%Options, qw(
-#    help
-#    podpath=s
-#    podroot=s
-#    htmldir=s
-#    htmlroot=s
-#    ignore=s
-#    recurse!
-#    splithead=s
-#    splititem=s
-#    splitpod=s
-#    verbose
-#));
-#usage("invalid parameters") unless $result;
-my $parsed_args = process_options( \%Options, \%args );
+#my $parsed_args = process_options( \%Options, \%args );
+my $opts = parse_command_line();
+my $parsed_args = process_options( \%args, $opts );
 
 # set these variables to appropriate values if the user didn't specify
 #  values for them.
@@ -166,11 +153,8 @@ END_OF_USAGE
     die $usage;
 }
 
-sub process_options {
-#    my ($Options, $args) = @_;
-    my ($args) = @_;
+sub parse_command_line {
     my %opts = ();
-#    my $result = GetOptions( \%Options, qw(
     my $result = GetOptions( \%opts, qw(
         help
         podpath=s
@@ -188,25 +172,31 @@ sub process_options {
     my %parsed_args = ();
     usage() if defined $opts{help};
     $opts{help} = "";                 # make -w shut up
+    return \%opts;
+}
 
+sub process_options {
+    my ($args, $opts) = @_;
+
+    my %parsed_args = ();
     while (my ($k,$v) = each %{$args}) {
         $parsed_args{$k} = $v;
     }
 
     # list of directories
-    @{$parsed_args->{podpath}}   = split(":", $opts{podpath}) if defined $opts{podpath};
+    @{$parsed_args->{podpath}}   = split(":", $opts->{podpath}) if defined $opts->{podpath};
 
     # lists of files
-    @{$parsed_args->{splithead}} = split(",", $opts{splithead}) if defined $opts{splithead};
-    @{$parsed_args->{splititem}} = split(",", $opts{splititem}) if defined $opts{splititem};
+    @{$parsed_args->{splithead}} = split(",", $opts->{splithead}) if defined $opts->{splithead};
+    @{$parsed_args->{splititem}} = split(",", $opts->{splititem}) if defined $opts->{splititem};
 
     for my $r ( qw| htmldir htmlroot podroot splitpod recurse verbose | ) {
-        $parsed_args->{$r} = $opts{$r} if defined $opts{$r};
+        $parsed_args->{$r} = $opts->{$r} if defined $opts->{$r};
     }
 
     @{$parsed_args->{ignore}} =
-        map "$parsed_args->{podroot}/$_", split(",", $opts{ignore})
-            if defined $opts{ignore};
+        map "$parsed_args->{podroot}/$_", split(",", $opts->{ignore})
+            if defined $opts->{ignore};
     return $parsed_args;
 }
 
