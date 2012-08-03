@@ -17,32 +17,10 @@ use Pod::Html::Auxiliary qw(
 );
 
 
-my %args = (
-    podpath     => [ '.' ],
-    podroot     => '.',
-    htmldir     => '',
-    htmlroot    => '/',
-    recurse     => 0,
-    splithead   => [],
-    splititem   => [],
-    splitpod    => '',
-    verbose     => 0,
-);
-
-#my $parsed_args = process_options( \%Options, \%args );
+my $args = init_args();
 my $opts = parse_command_line();
-my $parsed_args = process_options( \%args, $opts );
+my $parsed_args = process_options( $args, $opts );
 
-## set these variables to appropriate values if the user didn't specify
-##  values for them.
-#$parsed_args->{htmldir}  ||= "$parsed_args->{htmlroot}/html";
-#$parsed_args->{splitpod} ||= "$parsed_args->{podroot}/pod";
-#
-## make sure that the destination directory exists
-#if (! -d $parsed_args->{htmldir} ) {
-#    mkdir($parsed_args->{htmldir}, 0755)
-#        || die "$0: cannot make directory $parsed_args->{htmldir}: $!\n";
-#}
 $parsed_args = cleanup_elements($parsed_args);
 
 # the following array will eventually contain files that are to be
@@ -114,6 +92,20 @@ foreach my $dir (@{$parsed_args->{splithead}}) {
 
 ##############################################################################
 
+sub init_args {
+    my %args = (
+        podpath     => [ '.' ],
+        podroot     => '.',
+        htmldir     => '',
+        htmlroot    => '/',
+        recurse     => 0,
+        splithead   => [],
+        splititem   => [],
+        splitpod    => '',
+        verbose     => 0,
+    );
+    return \%args;
+}
 
 sub usage {
     warn "$0: @_\n" if @_;
