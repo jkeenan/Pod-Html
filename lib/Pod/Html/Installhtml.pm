@@ -450,4 +450,11 @@ sub runpod2html {
     return $rv;
 }
 
+sub get {
+    my ($self, $param) = @_;
+    die "get() must have defined argument: $!"
+        unless defined $param;
+    return $self->{$param} || undef;
+}
+
 1;
