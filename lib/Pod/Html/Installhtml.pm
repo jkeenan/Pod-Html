@@ -63,115 +63,6 @@ sub cleanup_elements {
     }
 }
 
-sub basic_installation {
-    my $self = shift;
-    foreach my $dir (@{$self->{podpath}}) {
-        my $rv = $self->installdir( $dir );
-    }
-    return scalar(@{$self->{podpath}});
-}
-
-sub create_all_indices {
-    my $self = shift;
-    foreach my $dir (@{$self->{splititem}}) {
-        print "creating index $self->{htmldir}/$dir.html\n"
-            if $self->{verbose};
-        $self->create_index($dir);
-    }
-    return scalar(@{$self->{splititem}});
-}
-
-sub create_index {
-    my ($self, $passed_dir) = @_;
-    my $html = "$self->{htmldir}/$passed_dir.html";
-    my $dir  = "$self->{htmldir}/$passed_dir";
-    (my $pod = $dir) =~ s,^.*/,,;
-
-    # get the list of .html files in this directory
-    opendir(my $DIR, $dir) ||
-        die "$0: error opening directory $dir for reading: $!\n";
-    my @files = sort(grep(/\.html?$/, readdir($DIR)));
-    closedir($DIR);
-
-    open(my $HTML, '>', $html) ||
-        die "$0: error opening $html for output: $!\n";
-
-    # for each .html file in the directory, extract the index
-    #    embedded in the file and throw it into the big index.
-    print $HTML "<DL COMPACT>\n";
-    foreach my $file (@files) {
-    
-        my $fullfile = "$dir/$file";
-        my $filedata = do {
-            open(my $IN, '<', $fullfile) ||
-            die "$0: error opening $fullfile for input: $!\n";
-            local $/ = undef;
-            <$IN>;
-            close $IN;
-        };
-    
-        # pull out the NAME section
-        my($lcp1, $lcp2) =
-            ($filedata =~
-            m#<h1 id="NAME">NAME</h1>\s*<p>\s*(\S+)\s+-\s+(\S.*?\S)</p>#);
-        defined $lcp1 or die "$0: can't find NAME section in $fullfile\n";
-    
-        my $url= "$pod/$file" ;
-        if ( ! defined $self->{htmlroot} || $self->{htmlroot} eq '' ) {
-            $url = relativize_url( "$pod/$file", $html ) ;
-        }
-    
-        print $HTML qq(<DT><A HREF="$url">);
-        print $HTML "$lcp1</A></DT><DD>$lcp2</DD>\n";
-    }
-    print $HTML "</DL>\n";
-
-    close($HTML);
-}
-
-sub handle_all_splits {
-    my $self = shift;
-    foreach my $dir (@{$self->{splithead}}) {
-        (my $pod = $dir) =~ s,^.*/,,;
-        $dir .= ".pod" unless $dir =~ /(\.pod|\.pm)$/;
-        # let pod2html create the file
-        my $rv = $self->runpod2html( {
-          podfile         => $dir,
-          doindex         => 1,
-        } );
-    
-        # now go through and truncate after the index
-        $dir =~ /^(.*?)(\.pod|\.pm)?$/sm;
-        my $file = "$self->{htmldir}/$1";
-        print "creating index $file.html\n" if $self->{verbose};
-    
-        # read in everything until what would have been the first =head
-        # directive, patching the index as we go.
-        open(my $H, '<', "$file.html") ||
-            die "$0: error opening $file.html for input: $!\n";
-        $/ = "";
-        my @data = ();
-        while (<$H>) {
-            last if /name="name"/i;
-            $_ =~ s{href="#(.*)">}{
-                my $url = "$pod/$1.html" ;
-                $url = relativize_url( $url, "$file.html" )
-                if ( ! defined $self->{htmlroot} || $self->{htmlroot} eq '' );
-                "href=\"$url\">" ;
-            }egi;
-            push @data, $_;
-        }
-        close($H);
-    
-        # now rewrite the file
-        open(my $HOUT, '>', "$file.html") ||
-            die "$0: error opening $file.html for output: $!\n";
-            print $HOUT "@data", "\n";
-        close($HOUT);
-    }
-    return 1;
-}
-
 sub split_on_head {
     my $self = shift;
     my($pod, $dirname, $filename);
@@ -235,7 +126,116 @@ sub split_on_item {
     chdir($pwd);
 }
 
+sub basic_installation {
+    my $self = shift;
+    foreach my $dir (@{$self->{podpath}}) {
+        my $rv = $self->installdir( $dir );
+    }
+    return scalar(@{$self->{podpath}});
+}
+
+sub create_all_indices {
+    my $self = shift;
+    foreach my $dir (@{$self->{splititem}}) {
+        print "creating index $self->{htmldir}/$dir.html\n"
+            if $self->{verbose};
+        $self->create_index($dir);
+    }
+    return scalar(@{$self->{splititem}});
+}
+
+sub handle_all_splits {
+    my $self = shift;
+    foreach my $dir (@{$self->{splithead}}) {
+        (my $pod = $dir) =~ s,^.*/,,;
+        $dir .= ".pod" unless $dir =~ /(\.pod|\.pm)$/;
+        # let pod2html create the file
+        my $rv = $self->runpod2html( {
+          podfile         => $dir,
+          doindex         => 1,
+        } );
+    
+        # now go through and truncate after the index
+        $dir =~ /^(.*?)(\.pod|\.pm)?$/sm;
+        my $file = "$self->{htmldir}/$1";
+        print "creating index $file.html\n" if $self->{verbose};
+    
+        # read in everything until what would have been the first =head
+        # directive, patching the index as we go.
+        open(my $H, '<', "$file.html") ||
+            die "$0: error opening $file.html for input: $!\n";
+        $/ = "";
+        my @data = ();
+        while (<$H>) {
+            last if /name="name"/i;
+            $_ =~ s{href="#(.*)">}{
+                my $url = "$pod/$1.html" ;
+                $url = relativize_url( $url, "$file.html" )
+                if ( ! defined $self->{htmlroot} || $self->{htmlroot} eq '' );
+                "href=\"$url\">" ;
+            }egi;
+            push @data, $_;
+        }
+        close($H);
+    
+        # now rewrite the file
+        open(my $HOUT, '>', "$file.html") ||
+            die "$0: error opening $file.html for output: $!\n";
+            print $HOUT "@data", "\n";
+        close($HOUT);
+    }
+    return 1;
+}
+
 # splitpod - splits a .pod file into several smaller .pod files
+sub create_index {
+    my ($self, $passed_dir) = @_;
+    my $html = "$self->{htmldir}/$passed_dir.html";
+    my $dir  = "$self->{htmldir}/$passed_dir";
+    (my $pod = $dir) =~ s,^.*/,,;
+
+    # get the list of .html files in this directory
+    opendir(my $DIR, $dir) ||
+        die "$0: error opening directory $dir for reading: $!\n";
+    my @files = sort(grep(/\.html?$/, readdir($DIR)));
+    closedir($DIR);
+
+    open(my $HTML, '>', $html) ||
+        die "$0: error opening $html for output: $!\n";
+
+    # for each .html file in the directory, extract the index
+    #    embedded in the file and throw it into the big index.
+    print $HTML "<DL COMPACT>\n";
+    foreach my $file (@files) {
+    
+        my $fullfile = "$dir/$file";
+        my $filedata = do {
+            open(my $IN, '<', $fullfile) ||
+            die "$0: error opening $fullfile for input: $!\n";
+            local $/ = undef;
+            <$IN>;
+            close $IN;
+        };
+    
+        # pull out the NAME section
+        my($lcp1, $lcp2) =
+            ($filedata =~
+            m#<h1 id="NAME">NAME</h1>\s*<p>\s*(\S+)\s+-\s+(\S.*?\S)</p>#);
+        defined $lcp1 or die "$0: can't find NAME section in $fullfile\n";
+    
+        my $url= "$pod/$file" ;
+        if ( ! defined $self->{htmlroot} || $self->{htmlroot} eq '' ) {
+            $url = relativize_url( "$pod/$file", $html ) ;
+        }
+    
+        print $HTML qq(<DT><A HREF="$url">);
+        print $HTML "$lcp1</A></DT><DD>$lcp2</DD>\n";
+    }
+    print $HTML "</DL>\n";
+
+    close($HTML);
+}
+
 #  where a new file is started each time a =head[1-6] pod directive
 #  is encountered in the input file.
 
