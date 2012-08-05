@@ -34,7 +34,12 @@ sub process_options {
     my ($self, $opts) = @_;
 
     # list of directories
-    @{$self->{podpath}}   = split(":", $opts->{podpath}) if defined $opts->{podpath};
+    if (defined $opts->{podpath}) {
+        my @podpaths = split(":", $opts->{podpath});
+        die "'podpath' option, if used, must have non-zero number of colon-delimited directories"
+            unless @podpaths;
+        @{$self->{podpath}} = @podpaths;
+    }
 
     # lists of files
     @{$self->{splithead}} = split(",", $opts->{splithead}) if defined $opts->{splithead};

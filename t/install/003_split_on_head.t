@@ -17,7 +17,7 @@ use File::Temp qw( tempdir );
 use Pod::Html::Installhtml;
 use Pod::Html::Auxiliary qw( unixify );
 use Scalar::Util qw( reftype );
-use Test::More qw(no_plan); # tests => 12;
+use Test::More tests => 25;
 use IO::CaptureOutput qw( capture );
 
 my $cwd = unixify(Cwd::cwd());

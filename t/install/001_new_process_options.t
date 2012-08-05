@@ -15,7 +15,7 @@ use File::Path qw( rmtree );
 use Pod::Html::Installhtml;
 use Pod::Html::Auxiliary qw( unixify );
 use Scalar::Util qw( reftype );
-use Test::More qw(no_plan); # tests => 12;
+use Test::More tests => 28;
 
 my $cwd = unixify(Cwd::cwd());
 my $tmphtmldir = "$cwd/tmphtml";
@@ -90,6 +90,15 @@ $podpath = $self->get('podpath');
 is(reftype($podpath), 'ARRAY', "podpath still is an array ref");
 is($podpath->[0], '.', "podpath still contains a single element: '.'");
 
+{
+    $self = Pod::Html::Installhtml->new();
+    isa_ok($self, "Pod::Html::Installhtml");
+
+    $opts = { podpath => '', };
+    eval { $self->process_options( $opts ); };
+    like($@, qr/'podpath' option, if used, must have non-zero number/,
+        "Got expected die message for lack of content in 'podpath'");
+}
 # cleanup
 
 1 while unlink $cachefile;
