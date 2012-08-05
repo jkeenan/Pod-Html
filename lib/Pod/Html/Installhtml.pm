@@ -79,7 +79,7 @@ sub split_on_head {
         $filename = "$2.pod";
     
         # since we are splitting this file it shouldn't be converted.
-        push(@{$self->{ignoredirs}}, "$self->{podroot}/$dirname/$filename");
+        push(@{$self->{ignore}}, "$self->{podroot}/$dirname/$filename");
     
         push(@{$self->{splitdirs}}, splitpod( {
             file        => "$self->{podroot}/$dirname/$filename",
