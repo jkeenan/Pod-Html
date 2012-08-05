@@ -99,6 +99,19 @@ my ($opts);
     chdir $cwd or die "Unable to change back to start directory";
 }
 
+{
+    $self = Pod::Html::Installhtml->new();
+    isa_ok($self, "Pod::Html::Installhtml");
+    ok(! $self->get('htmldir'), "'htmldir' starts out empty");
+
+    $opts = { };
+    $self->process_options( $opts );
+    $self->cleanup_elements();
+    is($self->get('htmldir'), $self->get('htmlroot') . "/html",
+        "'htmldir' verified as set to default value by cleanup_elements()");
+    chdir $cwd or die "Unable to change back to start directory";
+}
+
 # cleanup
 
 1 while unlink $cachefile;
