@@ -115,6 +115,34 @@ my ($opts);
     }
 }
 
+{
+    $self = Pod::Html::Installhtml->new();
+    isa_ok($self, "Pod::Html::Installhtml");
+
+    my $opt_podroot = "./xt";
+    my $opt_podpath = "split";
+    my @opt_splithead = ( "split/splithead1", "split/splithead2" );
+    $opts = {
+      podroot => $opt_podroot,
+      podpath => $opt_podpath,
+#      splithead => join(',' => @opt_splithead),
+      recurse => 1,
+      htmldir => "$cwd/tmphtml",
+      verbose => 1,
+    };
+    $self->process_options( $opts );
+    $self->cleanup_elements();
+    {
+        my  ($stdout, $stderr);
+        capture(
+            sub { $self->split_on_head(); },
+            \$stdout,
+            \$stderr,
+        );
+        ok( ! $stdout, "No verbose output, given no elements in splithead");
+    }
+}
+
 # cleanup
 
 1 while unlink $cachefile;
