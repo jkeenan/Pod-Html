@@ -104,7 +104,7 @@ my ($opts);
     isa_ok($self, "Pod::Html::Installhtml");
     ok(! $self->get('htmldir'), "'htmldir' starts out empty");
 
-    $opts = { };
+    $opts = { htmlroot => $cwd, };
     $self->process_options( $opts );
     $self->cleanup_elements();
     is($self->get('htmldir'), $self->get('htmlroot') . "/html",
