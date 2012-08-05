@@ -3,48 +3,26 @@
 # This file should really be extracted from a .PL file
 
 use strict;
-use vars qw( %Options );
-use Config;        # for config options in the makefile
-#use Data::Dumper;$Data::Dumper::Indent=1;
-use Pod::Html::Installhtml qw(
-    new
-    parse_command_line
-    process_options
-    cleanup_elements
-    split_on_head
-    split_on_item
-    basic_installation
-    create_all_indices
-    handle_all_splits
-);
+use Data::Dumper;$Data::Dumper::Indent=1;
+use Getopt::Long;    # for command-line parsing
+use Pod::Html::Installhtml;
 
-my $args = new();
+my $self = Pod::Html::Installhtml->new();
 my $opts = parse_command_line();
-my $parsed_args = process_options( $args, $opts );
-
-$parsed_args = cleanup_elements($parsed_args);
-
-# the following array will eventually contain files that are to be
-# ignored in the conversion process.  these are files that have been
-# process by splititem or splithead and should not be converted as a
-# result.
-# It's important to do this before convert ANY pods because
-# it may affect some of the links
-
-$parsed_args = split_on_head( $parsed_args );
-$parsed_args = split_on_item( $parsed_args );
-
-# convert the pod pages found in @poddirs
-basic_installation($parsed_args);
-
-#unless ( @{$parsed_args->{splititem}} or @{$parsed_args->{splithead}} ) {
+$self->process_options( $opts );
+$self->cleanup_elements();
+$self->split_on_head();
+$self->split_on_item();
+$self->basic_installation();
+#unless ( @{$self->{splititem}} or @{$self->{splithead}} ) {
 #    print STDERR "Exiting now; nothing to split\n";
 #    exit 0;
 #}
 
 # now go through and create master indices for each pod we split
-create_all_indices($parsed_args);
-handle_all_splits($parsed_args);
+$self->create_all_indices();
+$self->handle_all_splits();
+exit 0;
 
 
 =head1 NAME
@@ -144,6 +122,67 @@ perl documentation:
 Chris Hall E<lt>hallc@cs.colorado.eduE<gt>
 
 =cut
+
+sub parse_command_line {
+    my %opts = ();
+    usage("") unless @ARGV;
+    
+    # Overcome shell's p1,..,p8 limitation.  
+    # See vms/descrip_mms.template -> descrip.mms for invocation.
+    if ( $^O eq 'VMS' ) { @ARGV = split(/\s+/,$ARGV[0]); }
+
+    my $result = GetOptions( \%opts, qw(
+        help
+        podpath=s
+        podroot=s
+        htmldir=s
+        htmlroot=s
+        ignore=s
+        recurse!
+        splithead=s
+        splititem=s
+        splitpod=s
+        verbose
+    ));
+    usage("invalid parameters") unless $result;
+    usage() if defined $opts{help};
+    $opts{help} = "";                 # make -w shut up
+    return \%opts;
+}
+
+sub usage {
+    warn "$0: @_\n" if @_;
+    my $usage =<<END_OF_USAGE;
+Usage: $0 --help --podpath=<name>:...:<name> --podroot=<name>
+         --htmldir=<name> --htmlroot=<name> --norecurse --recurse
+         --splithead=<name>,...,<name> --splititem=<name>,...,<name>
+         --ignore=<name>,...,<name> --verbose
+
+    --help      - this message
+    --podpath   - colon-separated list of directories containing .pod and
+                  .pm files to be converted (. by default).
+    --podroot   - filesystem base directory from which all relative paths in
+                  podpath stem (default is .).
+    --htmldir   - directory to store resulting html files in relative
+                  to the filesystem (\$podroot/html by default).
+    --htmlroot  - http-server base directory from which all relative paths
+                  in podpath stem (default is /).
+    --norecurse - don't recurse on those subdirectories listed in podpath.
+                  (default behavior).
+    --recurse   - recurse on those subdirectories listed in podpath
+    --splithead - comma-separated list of .pod or .pm files to split.  will
+                  split each file into several smaller files at every occurrence
+                  of a pod =head[1-6] directive.
+    --splititem - comma-separated list of .pod or .pm files to split using
+                  splitpod.
+    --splitpod  - directory where the program splitpod can be found
+                  (\$podroot/pod by default).
+    --ignore    - comma-separated list of files that shouldn't be installed.
+    --verbose   - self-explanatory.
+
+END_OF_USAGE
+    die $usage;
+}
 
 __END__
 print STDERR Dumper $parsed_args;

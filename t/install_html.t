@@ -12,10 +12,10 @@ BEGIN {
 use strict;
 use Cwd;
 use File::Path qw( rmtree );
-use Pod::Html ();
+use Pod::Html::Auxiliary qw( unixify );
 use Test::More tests => 12;
 
-my $cwd = Pod::Html::Auxiliary::unixify(Cwd::cwd());
+my $cwd = unixify(Cwd::cwd());
 my $tmphtmldir = "$cwd/tmphtml";
 
 # preparation
