@@ -34,6 +34,8 @@ is(-f $tcachefile, undef, "No cache file to start");
 
 # actual tests
 my ($self, $podpath, $podroot, $splithead, $splititem, $ignore);
+my (@opts_podpaths, @opts_splitheads, @opts_splititems, @opts_ignores, $opts);
+
 $self = Pod::Html::Installhtml->new();
 ok($self, "Pod::Html::Installhtml->new() returned true value");
 isa_ok($self, "Pod::Html::Installhtml");
@@ -51,11 +53,11 @@ is(scalar(@$splititem), 0, "splititem array is empty");
 $ignore = $self->get('ignore');
 ok(! defined $ignore, "No ignored directories defined yet");
 
-my @opts_podpaths =qw ( alpha beta gamma );
-my @opts_splitheads = ( "alpha/delta", "beta/epsilon", "gamma/zeta" );
-my @opts_splititems = ( "alpha/eta", "beta/theta", "gamma/iota" );
-my @opts_ignores = ( "foo/file", "bar/baz" );
-my $opts = {
+@opts_podpaths =qw ( alpha beta gamma );
+@opts_splitheads = ( "alpha/delta", "beta/epsilon", "gamma/zeta" );
+@opts_splititems = ( "alpha/eta", "beta/theta", "gamma/iota" );
+@opts_ignores = ( "foo/file", "bar/baz" );
+$opts = {
     podpath => join(':' => @opts_podpaths),
     splithead => join(',' => @opts_splitheads),
     splititem => join(',' => @opts_splititems),
@@ -72,6 +74,21 @@ is_deeply(
     $self->get('ignore'),
     [ map { $self->get('podroot') . "/$_" } @opts_ignores ],
     "Got expected ignored files");
+
+#####
+
+$self = Pod::Html::Installhtml->new();
+ok($self, "Pod::Html::Installhtml->new() returned true value");
+isa_ok($self, "Pod::Html::Installhtml");
+$podpath = $self->get('podpath');
+is(reftype($podpath), 'ARRAY', "podpath is an array ref");
+is($podpath->[0], '.', "podpath contains a single element: '.'");
+# Test case where 'podpath' is undefined, hence default not overridden
+$opts = { podpath => undef }; 
+$self->process_options( $opts );
+$podpath = $self->get('podpath');
+is(reftype($podpath), 'ARRAY', "podpath still is an array ref");
+is($podpath->[0], '.', "podpath still contains a single element: '.'");
 
 # cleanup
 
