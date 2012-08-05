@@ -53,8 +53,8 @@ sub cleanup_elements {
     my $self = shift;
     # set these variables to appropriate values if the user didn't specify
     #  values for them.
-    $self->{htmldir}  ||= "$self->{htmlroot}/html";
-    $self->{splitpod} ||= "$self->{podroot}/pod";
+    $self->{htmldir}  = "$self->{htmlroot}/html" unless $self->{htmldir};
+    $self->{splitpod} = "$self->{podroot}/pod" unless $self->{splitpod};
     
     # make sure that the destination directory exists
     if (! -d $self->{htmldir} ) {
