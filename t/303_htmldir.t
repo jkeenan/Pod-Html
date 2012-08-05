@@ -24,12 +24,15 @@ SKIP: {
 
     my $data_pos = tell DATA; # to read <DATA> twice
 
+    TODO: {
+        local $TODO = 'more mysterious';
     convert_n_test("htmldir3", "test --htmldir and --htmlroot 3a", 
         podpath => $relcwd,
         podroot => $v . File::Spec->rootdir,
         htmldir => catdir($cwd, 't', ''), # test removal trailing slash
         quiet => 1,
     );
+    }
 
     seek DATA, $data_pos, 0; # to read <DATA> twice (expected output is the same)
 
