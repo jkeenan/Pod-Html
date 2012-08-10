@@ -41,7 +41,7 @@ my ($opts);
     my $opt_podroot = "./xt";
     my $opt_podpath = "split";
     my @opt_splithead = ( "split/splithead1", "split/splithead2" );
-    my @opt_splititem = ( "split/splititem1", "split/splititem2" );
+    my @opt_splititem = ( "split/splititem1", "split/splititem2");
     $opts = {
       podroot => $opt_podroot,
       podpath => $opt_podpath,
@@ -58,6 +58,7 @@ my ($opts);
     my $splitter = "$opt_podroot/pod/splitpod";
     like($@, qr/$splitter not found/s,
         "split_on_item(): failed as expected due to lack of '--splitpod'");
+
     # Following chdir is needed because split_on_item() chdirs internally.
     chdir $cwd;
 }
@@ -106,6 +107,38 @@ my ($opts);
     }
     # Following chdir is needed because split_on_item() chdirs internally.
     chdir $cwd;
+}
+
+{
+    $self = Pod::Html::Installhtml->new();
+    isa_ok($self, "Pod::Html::Installhtml");
+
+    my $opt_podroot = "./xt";
+    my $foo = 'foo';
+    File::Path::rmtree( "$cwd/$opt_podroot/$foo", 0 );
+    my $opt_podpath = "split";
+    my @opt_splithead = ( "split/splithead1", "split/splithead2" );
+    my @opt_splititem = ( $foo,  "split/splititem1", "split/splititem2" );
+    $opts = {
+      podroot => $opt_podroot,
+      podpath => $opt_podpath,
+      htmldir => "$cwd/tmphtml",
+      splithead => join(',' => @opt_splithead),
+      splititem => join(',' => @opt_splititem),
+      recurse => 1,
+      verbose => 0,
+    };
+    $self->process_options( $opts );
+    $self->cleanup_elements();
+    $self->split_on_head();
+    eval { $self->split_on_item(); };
+    my $splitter = "$opt_podroot/pod/splitpod";
+    like($@, qr/$splitter not found/s,
+        "split_on_item(): failed as expected due to lack of '--splitpod'");
+
+    # Following chdir is needed because split_on_item() chdirs internally.
+    chdir $cwd;
+    File::Path::rmtree( "$cwd/$opt_podroot/$foo", 0 );
 }
 
 # cleanup
