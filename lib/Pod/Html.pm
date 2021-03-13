@@ -25,12 +25,12 @@ Pod::Html - module to convert pod files to HTML
 
     use Pod::Html;
     use Pod::Html::Auxiliary qw( parse_command_line );
-    
+
     $p2h = Pod::Html->new();
     $p2h->process_options( parse_command_line() );
     $p2h->cleanup_elements();
     $p2h->generate_pages_cache();
-    
+
     $parser = $p2h->prepare_parser();
     $p2h->prepare_html_components($parser);
 
@@ -119,7 +119,7 @@ sub new {
     return bless \%args, $class;
 }
 
-=head2 C<()>
+=head2 C<process_options()>
 
 =over 4
 
@@ -485,7 +485,7 @@ sub prepare_parser {
     return $parser;
 }
 
-=head2 C<()>
+=head2 C<prepare_html_components()>
 
 =over 4
 
