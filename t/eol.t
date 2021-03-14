@@ -1,5 +1,15 @@
 #!./perl -w
 
+BEGIN {
+    use File::Spec::Functions ':ALL';
+    @INC = $ENV{PERL_CORE}
+        ? map { rel2abs($_) }
+            (qw| ./lib ./t/lib ../../lib |)
+        : map { rel2abs($_) }
+            ( "ext/Pod-Html/lib", "ext/Pod-Html/t/lib", "./lib" );
+}
+
+use Pod::Html;
 use Test::More tests => 3;
 
 my $podfile = "$$.pod";
@@ -34,8 +44,6 @@ crlf crlf crlf crlf crlf crlf crlf crlf crlf crlf crlf crlf crlf crlf crlf
 __EOF__
 close $pod or die $!;
 
-use Pod::Html;
-
 my $i = 0;
 foreach my $eol ("\r", "\n", "\r\n") {
     open $pod, '<', $podfile or die "$podfile: $!";
@@ -47,19 +55,7 @@ foreach my $eol ("\r", "\n", "\r\n") {
     close $pod or die $!;
     close $in or die $!;
 
-    my $p2h = Pod::Html->new();
-    $p2h->process_options( {
-        title => 'eol',
-        infile => $infile,
-        outfile => $outfile[$i],
-    } );
-    $p2h->cleanup_elements();
-    $p2h->generate_pages_cache();
-    
-    my $parser = $p2h->prepare_parser();
-    $p2h->prepare_html_components($parser);
-    my $output = $p2h->prepare_output($parser);
-    my $rv = $p2h->write_html($output);
+    pod2html("--title=eol", "--infile=$infile", "--outfile=$outfile[$i]");
     ++$i;
 }
 

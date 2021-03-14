@@ -1,5 +1,15 @@
 # -*- perl -*-
+#BEGIN {
+#    use File::Spec::Functions ':ALL';
+#    @INC = $ENV{PERL_CORE}
+#        ? map { rel2abs($_) }
+#            (qw| ./lib ./t/lib ../../lib |)
+#        : map { rel2abs($_) }
+#            ( "ext/Pod-Html/lib", "ext/Pod-Html/t/lib", "./lib" );
+#}
+
 use strict;
+use lib ( qw| ./blib/lib ./lib | );
 use Pod::Html::Auxiliary qw( anchorify );
 use Test::More tests => 1;
 
@@ -23,29 +33,29 @@ foreach $i (0..$#poddata) {
     $heads{anchorify($1)} = 1 if $poddata[$i] =~ /=head[1-6]\s+(.*)/;
 }
 my %expected = map { $_ => 1 } qw(
-    name
-    description
-    subroutine
-    error
-    method
-    has_a_wordspace
-    hastrailingwordspace
-    hasleadingwordspace
-    has_extra_internalwordspace
-    hasquotes
-    hasquestionmark
-    has_hyphen_and_space
+    NAME
+    DESCRIPTION
+    Subroutine
+    Error
+    Method
+    Has_A_Wordspace
+    HasTrailingWordspace
+    HasLeadingWordspace
+    Has_Extra_InternalWordspace
+    Has_Quotes
+    Has_QuestionMark
+    Has_Hyphen_And_Space
 );
 is_deeply(
-    [ keys %heads ],
-    [ keys %expected ],
+    \%heads,
+    \%expected,
     "Got expected POD heads"
 );
 
 __DATA__
 =head1 NAME
 
-anchorify - Test C<Pod::Html::anchorify()>
+anchorify - Test C<Pod::Html::Auxiliary::anchorify()>
 
 =head1 DESCRIPTION
 

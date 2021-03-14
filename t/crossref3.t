@@ -1,47 +1,59 @@
-#!/usr/bin/perl -w                                         # -*- perl -*-
+# -*- perl -*-
 
 BEGIN {
-    require "t/pod2html-lib.pl";
-}
-
-END {
-    rem_test_dir();
+    use File::Spec::Functions ':ALL';
+    @INC = $ENV{PERL_CORE}
+        ? map { rel2abs($_) }
+            (qw| ./lib ./t/lib ../../lib |)
+        : map { rel2abs($_) }
+            ( "ext/Pod-Html/lib", "ext/Pod-Html/t/lib", "./lib" );
 }
 
 use strict;
-use Cwd;
-use File::Spec;
-use File::Spec::Functions;
+use warnings;
 use Test::More tests => 1;
+use Testing qw( xconvert setup_testing_dir );
+use Cwd;
 
-SKIP: {
-    my $output = make_test_dir();
-    skip "$output", 1 if $output;
-    
-    my $cwd = cwd();
+my $debug = 0;
+my $startdir = cwd();
+END { chdir($startdir) or die("Cannot change back to $startdir: $!"); }
+my ($expect_raw, $args);
+{ local $/; $expect_raw = <DATA>; }
 
-    convert_n_test("crossref", "cross references", 
-        podpath => join(':' => (
-            't',
-            'testdir/test.lib',
-        ) ),
-        podroot => $cwd,
-        htmlroot => $cwd,
-        quiet => 1,
-    );
-}
+my $tdir = setup_testing_dir( {
+    startdir    => $startdir,
+    debug       => $debug,
+} );
+
+my $cwd = cwd();
+
+$args = {
+    podstub => "crossref",
+    description => "cross references",
+    expect => $expect_raw,
+    p2h => {
+        podpath    => 't:testdir/test.lib',
+        podroot    => $cwd,
+        htmlroot   => $cwd,
+        quiet      => 1,
+    },
+    debug => $debug,
+};
+$args->{core} = 1 if $ENV{PERL_CORE};
+xconvert($args);
 
 __DATA__
 <?xml version="1.0" ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<title></title>
+<title>htmlcrossref - Test HTML cross reference links</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rev="made" href="mailto:[PERLADMIN]" />
 </head>
 
-<body style="background-color: white">
+<body>
 
 
 
@@ -67,17 +79,17 @@ __DATA__
 
 <p><a href="#item1">&quot;item1&quot;</a></p>
 
-<p><a href="#non-existant-section">&quot;non existant section&quot;</a></p>
+<p><a href="#non-existent-section">&quot;non existent section&quot;</a></p>
 
 <p><a href="[ABSCURRENTWORKINGDIRECTORY]/testdir/test.lib/var-copy.html">var-copy</a></p>
 
-<p><a href="[ABSCURRENTWORKINGDIRECTORY]/testdir/test.lib/var-copy.html#pod-">&quot;$&quot;&quot; in var-copy</a></p>
+<p><a href="[ABSCURRENTWORKINGDIRECTORY]/testdir/test.lib/var-copy.html#pod">&quot;$&quot;&quot; in var-copy</a></p>
 
 <p><code>var-copy</code></p>
 
 <p><code>var-copy/$&quot;</code></p>
 
-<p><a href="[ABSCURRENTWORKINGDIRECTORY]/testdir/test.lib/podspec-copy.html#First:">&quot;First:&quot; in podspec-copy</a></p>
+<p><a href="[ABSCURRENTWORKINGDIRECTORY]/testdir/test.lib/podspec-copy.html#First">&quot;First:&quot; in podspec-copy</a></p>
 
 <p><code>podspec-copy/First:</code></p>
 

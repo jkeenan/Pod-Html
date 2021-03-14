@@ -1,13 +1,40 @@
-#!/usr/bin/perl -w                                         # -*- perl -*-
+# -*- perl -*-
 
 BEGIN {
-    require "t/pod2html-lib.pl";
+    use File::Spec::Functions ':ALL';
+    @INC = $ENV{PERL_CORE}
+        ? map { rel2abs($_) }
+            (qw| ./lib ./t/lib ../../lib |)
+        : map { rel2abs($_) }
+            ( "ext/Pod-Html/lib", "ext/Pod-Html/t/lib", "./lib" );
 }
 
 use strict;
+use warnings;
 use Test::More tests => 1;
+use Testing qw( xconvert setup_testing_dir );
+use Cwd;
 
-convert_n_test("poderr", "pod error section");
+my $debug = 0;
+my $startdir = cwd();
+END { chdir($startdir) or die("Cannot change back to $startdir: $!"); }
+my ($expect_raw, $args);
+{ local $/; $expect_raw = <DATA>; }
+
+my $tdir = setup_testing_dir( {
+    startdir    => $startdir,
+    debug       => $debug,
+} );
+
+$args = {
+    podstub => "poderr",
+    description => "pod error section",
+    expect => $expect_raw,
+    debug => 1,
+};
+$args->{core} = 1 if $ENV{PERL_CORE};
+
+xconvert($args);
 
 __DATA__
 <?xml version="1.0" ?>
@@ -19,7 +46,7 @@ __DATA__
 <link rev="made" href="mailto:[PERLADMIN]" />
 </head>
 
-<body style="background-color: white">
+<body>
 
 
 
@@ -52,7 +79,7 @@ __DATA__
 
 <dl>
 
-<dt id="Around-line-5:">Around line 5:</dt>
+<dt id="Around-line-5">Around line 5:</dt>
 <dd>
 
 <p>You can&#39;t have =items (as at line 9) unless the first thing after the =over is an =item</p>
